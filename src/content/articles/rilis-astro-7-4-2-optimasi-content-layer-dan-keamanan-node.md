@@ -6,7 +6,7 @@ category: "tech-update"
 tags: ["Astro", "Node.js", "Performance", "Content Layer", "Cloudflare", "Web Dev"]
 readingTime: "5 min read"
 author:
-  name: "Dendy Swarandanu"
+  name: "Mazzden"
   role: "Frontend & Fullstack Architect"
 featured: false
 tldr:
