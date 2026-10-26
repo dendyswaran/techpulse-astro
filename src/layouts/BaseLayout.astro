@@ -9,8 +9,8 @@ interface Props {
 }
 
 const {
-  title = 'TechPulse — Technology Updates, AI & Cybersecurity Digest',
-  description = 'A minimalist Medium-inspired editorial publication covering the latest technology updates, autonomous AI breakthroughs, and verified October 2026 security vulnerability advisories (CVEs).',
+  title = 'TechPulse',
+  description = 'Independent reporting on software systems, foundation models, and runtime security advisories.',
   activeNav = 'home',
 } = Astro.props;
 
@@ -22,6 +22,7 @@ const searchIndex = allArticles
     title: entry.data.title,
     subtitle: entry.data.subtitle,
     category: entry.data.category,
+    author: entry.data.author.name,
     tags: entry.data.tags,
     cveIds: entry.data.cveIds || [],
     severity: entry.data.severity || null,
@@ -54,39 +55,28 @@ const searchIndex = allArticles
   <body>
     <header class="site-header">
       <div class="header-inner">
-        <div class="brand-wrap">
-          <a href="/" class="brand-logo" aria-label="TechPulse Home">
-            TechPulse<span class="brand-dot"></span>
-          </a>
-          <span class="brand-tagline">Technology, AI & Cybersecurity Digest</span>
-        </div>
+        <a href="/" class="brand-wordmark" aria-label="TechPulse Home">TechPulse</a>
 
-        <nav class="main-nav" aria-label="Primary Navigation">
-          <a href="/" class:list={['nav-link', { active: activeNav === 'home' }]}>Home</a>
-          <a href="/category/ai" class:list={['nav-link', { active: activeNav === 'ai' }]}>AI</a>
-          <a href="/category/security" class:list={['nav-link', { active: activeNav === 'security' }]}>Security & CVEs</a>
-          <a href="/category/tech-update" class:list={['nav-link', { active: activeNav === 'tech-update' }]}>Tech Updates</a>
-          <a href="/category/tech-news" class:list={['nav-link', { active: activeNav === 'tech-news' }]}>Tech News</a>
-          <a href="/security" class:list={['nav-link nav-link-cve', { active: activeNav === 'cve-matrix' }]}>
-            <span>●</span> CVE Matrix
-          </a>
-        </nav>
-
-        <div class="header-actions">
-          <button type="button" class="search-trigger" id="open-search-btn" aria-label="Search articles or CVEs">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        <div class="header-utilities">
+          <button type="button" class="util-btn" id="open-search-btn" aria-label="Search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="11" cy="11" r="7.5"></circle>
+              <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
             </svg>
-            <span>Search articles or CVEs...</span>
-            <kbd class="search-kbd">/</kbd>
+            <span>Search</span>
           </button>
 
-          <div class="theme-switcher" role="group" aria-label="Reading Theme">
-            <button type="button" class="theme-btn" data-set-theme="light" title="Light Mode">Light</button>
-            <button type="button" class="theme-btn" data-set-theme="sepia" title="Sepia Reading Mode">Sepia</button>
-            <button type="button" class="theme-btn" data-set-theme="dark" title="Dark Mode">Dark</button>
-          </div>
+          <a href="/security" class:list={['util-link', { active: activeNav === 'cve-matrix' }]}>
+            CVEs
+          </a>
+
+          <button type="button" class="util-btn" id="cycle-theme-btn" aria-label="Cycle reading theme" title="Switch reading theme">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="12" cy="12" r="4.5"></circle>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+            </svg>
+            <span id="theme-label">Paper</span>
+          </button>
         </div>
       </div>
     </header>
@@ -95,66 +85,70 @@ const searchIndex = allArticles
       <slot />
     </main>
 
-    <!-- Instant Search Modal -->
-    <div class="search-backdrop" id="search-backdrop" role="dialog" aria-modal="true" aria-label="Search Articles and CVEs">
+    <!-- Search Modal -->
+    <div class="search-backdrop" id="search-backdrop" role="dialog" aria-modal="true" aria-label="Search">
       <div class="search-modal">
         <div class="search-input-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-muted)">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color: var(--ink-muted)">
+            <circle cx="11" cy="11" r="7.5"></circle>
+            <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
           </svg>
           <input
             type="search"
             id="global-search-input"
             class="search-input"
-            placeholder="Search by title, topic (Node.js, Bun, PHP, Claude), or CVE ID..."
+            placeholder="Search stories, authors, or CVE identifiers..."
             autocomplete="off"
           />
-          <button type="button" id="close-search-btn" class="search-kbd" style="cursor:pointer;">ESC</button>
+          <button type="button" id="close-search-btn" class="util-btn" style="font-size:0.75rem;">Esc</button>
         </div>
         <div class="search-results" id="global-search-results"></div>
       </div>
     </div>
 
     <footer class="site-footer">
-      <div class="container-wide" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px;">
+      <div class="container-wide" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:16px;">
         <div>
-          <strong class="font-serif" style="font-size:1.1rem; color:var(--ink);">TechPulse</strong>
-          <p style="margin:4px 0 0;">Curated Technology Updates, Autonomous AI & Security Vulnerability Advisories — October 2026 Edition.</p>
+          <span class="font-serif" style="font-weight:600; color:var(--ink);">TechPulse</span>
+          <span style="margin-left:10px;">Systems, AI & Security Advisories</span>
         </div>
         <div style="display:flex; gap:20px; flex-wrap:wrap;">
-          <a href="/">Home</a>
-          <a href="/category/ai">Artificial Intelligence</a>
-          <a href="/category/security">Security & CVEs</a>
-          <a href="/category/tech-update">Tech Updates</a>
-          <a href="/security">CVE Matrix</a>
+          <a href="/" class="util-link">Archive</a>
+          <a href="/category/ai" class="util-link">AI</a>
+          <a href="/category/security" class="util-link">Security</a>
+          <a href="/category/tech-update" class="util-link">Systems</a>
+          <a href="/category/tech-news" class="util-link">Industry</a>
+          <a href="/security" class="util-link">CVE Index</a>
         </div>
       </div>
     </footer>
 
     <script is:inline define:vars={{ searchIndex }}>
       (function () {
-        // 1. Theme Switcher
-        function syncThemeButtons() {
-          var current = document.documentElement.getAttribute('data-theme') || 'light';
-          document.querySelectorAll('[data-set-theme]').forEach(function (btn) {
-            btn.classList.toggle('active', btn.getAttribute('data-set-theme') === current);
-          });
-        }
-        syncThemeButtons();
+        var themes = ['light', 'sepia', 'dark'];
+        var labels = { light: 'Paper', sepia: 'Sepia', dark: 'Night' };
+        var themeBtn = document.getElementById('cycle-theme-btn');
+        var themeLabel = document.getElementById('theme-label');
 
-        document.querySelectorAll('[data-set-theme]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var next = btn.getAttribute('data-set-theme');
+        function syncThemeLabel() {
+          var current = document.documentElement.getAttribute('data-theme') || 'light';
+          if (themeLabel) themeLabel.textContent = labels[current] || 'Paper';
+        }
+        syncThemeLabel();
+
+        if (themeBtn) {
+          themeBtn.addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme') || 'light';
+            var next = themes[(themes.indexOf(current) + 1) % themes.length];
             document.documentElement.setAttribute('data-theme', next);
             try {
               localStorage.setItem('techpulse-theme', next);
             } catch (e) {}
-            syncThemeButtons();
+            syncThemeLabel();
           });
-        });
+        }
 
-        // 2. Global Instant Search Modal
+        // Search Modal
         var backdrop = document.getElementById('search-backdrop');
         var openBtn = document.getElementById('open-search-btn');
         var closeBtn = document.getElementById('close-search-btn');
@@ -169,6 +163,7 @@ const searchIndex = allArticles
             var haystack = [
               item.title,
               item.subtitle,
+              item.author,
               item.category,
               (item.tags || []).join(' '),
               (item.cveIds || []).join(' '),
@@ -180,38 +175,34 @@ const searchIndex = allArticles
 
           if (matches.length === 0) {
             resultsContainer.innerHTML =
-              '<div style="padding:24px; text-align:center; color:var(--ink-muted); font-size:0.9rem;">No matching stories or CVE advisories found for that keyword.</div>';
+              '<div style="padding:24px 20px; color:var(--ink-muted); font-size:0.875rem;">No matching articles found.</div>';
             return;
           }
 
           resultsContainer.innerHTML = matches
             .map(function (m) {
-              var cveBadge =
+              var cveText =
                 m.cveIds && m.cveIds.length
-                  ? '<span class="severity-badge severity-' +
-                    (m.severity || 'HIGH') +
-                    '" style="margin-left:8px;">' +
+                  ? ' · <span class="font-mono" style="color:var(--crit-text); font-size:0.75rem;">' +
                     m.cveIds[0] +
-                    (m.cvss ? ' · CVSS ' + m.cvss : '') +
+                    (m.cvss ? ' (' + m.cvss + ')' : '') +
                     '</span>'
                   : '';
               return (
                 '<a href="/articles/' +
                 m.slug +
                 '" class="search-item">' +
-                '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">' +
-                '<span style="font-size:0.74rem; font-weight:600; text-transform:uppercase; color:var(--accent);">' +
-                m.category +
-                cveBadge +
-                '</span>' +
-                '<span style="font-size:0.75rem; color:var(--ink-muted);">' +
+                '<div style="font-size:0.75rem; color:var(--ink-muted); margin-bottom:4px;">' +
+                '<span style="color:var(--ink); font-weight:500;">' +
+                m.author +
+                '</span> · ' +
                 m.readingTime +
-                '</span>' +
+                cveText +
                 '</div>' +
-                '<div class="font-serif" style="font-weight:700; font-size:1.05rem; color:var(--ink); margin-bottom:3px;">' +
+                '<div class="font-serif" style="font-weight:600; font-size:1.05rem; color:var(--ink); margin-bottom:2px;">' +
                 m.title +
                 '</div>' +
-                '<div style="font-size:0.83rem; color:var(--ink-secondary); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">' +
+                '<div style="font-size:0.82rem; color:var(--ink-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' +
                 m.subtitle +
                 '</div>' +
                 '</a>'
@@ -226,7 +217,7 @@ const searchIndex = allArticles
           renderSearchResults(input ? input.value : '');
           setTimeout(function () {
             if (input) input.focus();
-          }, 40);
+          }, 30);
         }
 
         function closeSearch() {
@@ -256,7 +247,7 @@ const searchIndex = allArticles
           }
         });
 
-        // 3. Bookmarks (Reading List) in localStorage
+        // Bookmarks (Reading List)
         function getBookmarks() {
           try {
             return JSON.parse(localStorage.getItem('techpulse-bookmarks') || '[]');
@@ -277,7 +268,7 @@ const searchIndex = allArticles
           var slugs = getBookmarks();
           if (!slugs.length) {
             box.innerHTML =
-              '<p style="font-size:0.83rem; color:var(--ink-muted); margin:0;">Click the <strong>Save</strong> icon on any story to bookmark it to your personal reading list.</p>';
+              '<p style="font-size:0.8125rem; color:var(--ink-muted); margin:0; line-height:1.5;">Click the bookmark icon on any story to save it here for offline or later reading.</p>';
             return;
           }
           var items = searchIndex.filter(function (a) {
@@ -286,15 +277,17 @@ const searchIndex = allArticles
           box.innerHTML = items
             .map(function (item) {
               return (
-                '<div style="padding:8px 0; border-bottom:1px solid var(--border);">' +
+                '<div style="padding:8px 0;">' +
+                '<div style="font-size:0.75rem; color:var(--ink-muted); margin-bottom:2px;">' +
+                item.author +
+                ' · ' +
+                item.readingTime +
+                '</div>' +
                 '<a href="/articles/' +
                 item.slug +
-                '" class="font-serif" style="font-weight:600; font-size:0.92rem; color:var(--ink); display:block; line-height:1.35;">' +
+                '" class="font-serif" style="font-weight:600; font-size:0.95rem; color:var(--ink); display:block; line-height:1.32;">' +
                 item.title +
                 '</a>' +
-                '<span style="font-size:0.74rem; color:var(--ink-muted);">' +
-                item.readingTime +
-                '</span>' +
                 '</div>'
               );
             })
@@ -307,8 +300,7 @@ const searchIndex = allArticles
             var slug = btn.getAttribute('data-bookmark-slug');
             var isSaved = slugs.indexOf(slug) !== -1;
             btn.classList.toggle('saved', isSaved);
-            var label = btn.querySelector('.bm-label');
-            if (label) label.textContent = isSaved ? 'Saved' : 'Save';
+            btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
           });
           renderSidebarBookmarks();
         }
