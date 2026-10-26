@@ -40,7 +40,7 @@ const categoryLabel: Record<string, string> = {
 
 const formattedDate = pubDate.toLocaleDateString('en-US', {
   year: 'numeric',
-  month: 'long',
+  month: 'short',
   day: 'numeric',
 });
 
@@ -78,7 +78,9 @@ const relatedArticles = allArticles
       <div class="article-byline-bar">
         <div class="byline-author-block">
           <span class="byline-author-name">{author.name}</span>
-          <span class="byline-author-role">{author.role}</span>
+          <span class="byline-author-role">
+            {author.role} · {readingTime}
+          </span>
         </div>
 
         <div class="byline-actions">
@@ -99,7 +101,7 @@ const relatedArticles = allArticles
             title="Save to reading list"
             aria-label="Bookmark article"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
           </button>
@@ -111,7 +113,7 @@ const relatedArticles = allArticles
             title="Copy article link"
             aria-label="Copy article link"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
             </svg>
@@ -120,7 +122,19 @@ const relatedArticles = allArticles
       </div>
     </header>
 
-    <!-- Technical Advisory Specification Datasheet (for CVE / Security Articles) -->
+    <!-- Editorial Abstract / Margin Rule (The Brief) -->
+    {tldr && tldr.length > 0 && (
+      <aside class="editorial-brief" aria-label="The Brief">
+        <div class="editorial-brief-label">The Brief</div>
+        <ul>
+          {tldr.map((point) => (
+            <li>{point}</li>
+          ))}
+        </ul>
+      </aside>
+    )}
+
+    <!-- Compact Technical Advisory Metadata (for CVE / Security Articles) -->
     {cveIds && cveIds.length > 0 && (
       <section class="spec-datasheet" aria-label="Vulnerability Specification">
         <div class="spec-row">
@@ -150,19 +164,7 @@ const relatedArticles = allArticles
       </section>
     )}
 
-    <!-- Editorial Abstract / Margin Rule (The Brief) -->
-    {tldr && tldr.length > 0 && (
-      <aside class="editorial-brief" aria-label="The Brief">
-        <div class="editorial-brief-label">The Brief</div>
-        <ul>
-          {tldr.map((point) => (
-            <li>{point}</li>
-          ))}
-        </ul>
-      </aside>
-    )}
-
-    <!-- Main Essay Body -->
+    <!-- Main Essay Body (Medium 20px Serif, 1.8 line-height, 680px measure) -->
     <div class="prose-editorial">
       <Content />
     </div>
