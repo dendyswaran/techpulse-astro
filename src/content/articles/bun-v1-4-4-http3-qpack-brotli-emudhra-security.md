@@ -6,7 +6,7 @@ category: "security"
 tags: ["Bun", "HTTP/3", "QPACK", "CVE-2026-111497", "GHSA-cf8x-9m69-3gg3", "TLS"]
 readingTime: "6 min read"
 author:
-  name: "Dendy Swarandanu & Editorial Desk"
+  name: "Mazzden"
   role: "Infrastructure & Security Lead"
 featured: false
 tldr:
