@@ -1,10 +1,13 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://techpulse.id',
+  site: 'https://techpulse-astro.vercel.app',
   markdown: {
     shikiConfig: {
-      theme: 'github-dark-dimmed',
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark-dimmed',
+      },
       wrap: true,
     },
   },
