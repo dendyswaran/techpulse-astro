@@ -1,0 +1,112 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+}
+
+const { article } = Astro.props;
+const {
+  title,
+  subtitle,
+  pubDate,
+  category,
+  tags,
+  readingTime,
+  author,
+  tldr,
+  cveIds,
+  severity,
+  cvss,
+  patchedVersions,
+} = article.data;
+
+const categoryLabel: Record<string, string> = {
+  ai: 'Artificial Intelligence',
+  security: 'Security & Vulnerability',
+  'tech-update': 'Tech Updates',
+  'tech-news': 'Tech News',
+};
+
+const formattedDate = pubDate.toLocaleDateString('en-US', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+
+const initials = author.name
+  .split(' ')
+  .slice(0, 2)
+  .map((w) => w[0])
+  .join('')
+  .toUpperCase();
+---
+
+<article
+  class="story-card"
+  data-category={category}
+  data-tags={tags.join(',').toLowerCase()}
+>
+  <div class="story-meta-top">
+    <span class="author-avatar" aria-hidden="true">{initials}</span>
+    <span style="font-weight: 600; color: var(--ink);">{author.name}</span>
+    <span>·</span>
+    <a href={`/category/${category}`} class={`badge badge-${category}`}>
+      {categoryLabel[category] || category}
+    </a>
+    <span>·</span>
+    <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+    {severity && (
+      <span class={`severity-badge severity-${severity}`}>
+        {severity} {cvss ? `· CVSS ${cvss}` : ''}
+      </span>
+    )}
+  </div>
+
+  <a href={`/articles/${article.slug}`} style="display: block;">
+    <h2 class="story-title">{title}</h2>
+    <p class="story-subtitle">{subtitle}</p>
+  </a>
+
+  {tldr && tldr.length > 0 && (
+    <details class="card-tldr">
+      <summary>
+        <span>✦ Quick Summary (TL;DR — {tldr.length} key takeaways)</span>
+        <span style="font-size: 0.74rem; color: var(--ink-muted);">Click to expand</span>
+      </summary>
+      <ul>
+        {tldr.map((point) => (
+          <li>{point}</li>
+        ))}
+      </ul>
+    </details>
+  )}
+
+  <div class="story-footer">
+    <div class="story-footer-left">
+      {tags.slice(0, 3).map((tag) => (
+        <span class="tag-pill">{tag}</span>
+      ))}
+      <span>{readingTime}</span>
+      {cveIds && cveIds.length > 0 && (
+        <span class="cve-chip" title={`Patched: ${patchedVersions || '-'}`}>
+          {cveIds[0]}{cveIds.length > 1 ? ` +${cveIds.length - 1}` : ''}
+        </span>
+      )}
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button
+        type="button"
+        class="bookmark-btn"
+        data-bookmark-slug={article.slug}
+        aria-label={`Bookmark story ${title}`}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="bm-label">Save</span>
+      </button>
+    </div>
+  </div>
+</article>
