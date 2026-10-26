@@ -7,140 +7,101 @@ const allArticles = (await getCollection('articles')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
-const featuredArticles = allArticles.filter((a) => a.data.featured);
-const primaryHero = featuredArticles[0] || allArticles[0];
-const secondaryFeatured = featuredArticles.slice(1, 3);
+const advisoryLedger = [
+  {
+    id: 'CVE-2026-111497',
+    label: 'Node.js Brotli RCE',
+    cvss: '9.8',
+    severity: 'CRITICAL',
+    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
+  },
+  {
+    id: 'CVE-2026-109618',
+    label: 'PHP SAPI Pre-Auth RCE',
+    cvss: '9.2',
+    severity: 'CRITICAL',
+    slug: 'php2shell-rce-cve-2026-109618-ditemukan-ai',
+  },
+  {
+    id: 'GHSA-cf8x-9m69',
+    label: 'Bun HTTP/3 QPACK DoS',
+    cvss: '9.2',
+    severity: 'HIGH',
+    slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
+  },
+  {
+    id: 'CVE-2026-91403',
+    label: 'Oracle Java JSSE TLS',
+    cvss: '9.1',
+    severity: 'CRITICAL',
+    slug: 'oracle-java-jsse-cve-2026-91403-out-of-band-alert',
+  },
+];
 
-const securityAdvisories = allArticles.filter((a) => a.data.category === 'security');
+const staffPicks = allArticles.filter((a) => a.data.featured).slice(0, 4);
+
+const categoryLabel: Record<string, string> = {
+  ai: 'AI',
+  security: 'Security',
+  'tech-update': 'Systems',
+  'tech-news': 'Industry',
+};
 
 const popularTopics = [
   'Node.js',
   'Bun',
-  'LLM',
-  'AI Agents',
   'PHP',
   'Java',
+  'AI Agents',
+  'LLM',
   'Astro',
-  'RCE',
   'Zero-Day',
   'TLS',
-  'Claude Duet',
-  'Kimi K3.1 Pro',
+  'RCE',
 ];
 ---
 
 <BaseLayout
-  title="TechPulse — Technology Updates, AI & Security Vulnerability Digest"
+  title="TechPulse — Systems, AI & Security Advisories"
   activeNav="home"
 >
-  <!-- Staff Picks / Editors' Featured Banner -->
-  <section style="background: var(--bg-subtle); border-bottom: 1px solid var(--border); padding: 36px 0 32px;">
-    <div class="container-wide">
-      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);"></span>
-          <span style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-secondary);">
-            Editors' Picks · Late October 2026 Edition
-          </span>
-        </div>
-        <a href="/security" style="font-size:0.82rem; font-weight:600; color:var(--crit-text); display:inline-flex; align-items:center; gap:6px;">
-          <span>⚡ 4 Critical Runtime Security Advisories This Week (Node.js, Bun, PHP, Java)</span>
-          <span>→</span>
-        </a>
-      </div>
-
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; align-items: stretch;">
-        <!-- Main Featured Hero Card -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 26px; display:flex; flex-direction:column; justify-content:space-between; box-shadow: var(--shadow-sm);">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-              <span class={`badge badge-${primaryHero.data.category}`}>Featured Story</span>
-              {primaryHero.data.severity && (
-                <span class={`severity-badge severity-${primaryHero.data.severity}`}>
-                  {primaryHero.data.severity} · CVSS {primaryHero.data.cvss}
-                </span>
-              )}
-              <span style="font-size:0.78rem; color:var(--ink-muted);">{primaryHero.data.readingTime}</span>
-            </div>
-            <a href={`/articles/${primaryHero.slug}`}>
-              <h1 class="font-serif" style="font-size:1.75rem; line-height:1.24; margin:0 0 10px; color:var(--ink);">
-                {primaryHero.data.title}
-              </h1>
-              <p style="font-size:0.96rem; color:var(--ink-secondary); line-height:1.55; margin:0 0 16px;">
-                {primaryHero.data.subtitle}
-              </p>
-            </a>
-          </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:14px; font-size:0.82rem;">
-            <span style="color:var(--ink-secondary); font-weight:600;">{primaryHero.data.author.name}</span>
-            <a href={`/articles/${primaryHero.slug}`} style="color:var(--accent); font-weight:600;">
-              Read Full Story →
-            </a>
-          </div>
-        </div>
-
-        <!-- Secondary Featured Stack -->
-        <div style="display:flex; flex-direction:column; gap:16px;">
-          {secondaryFeatured.map((item) => (
-            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-              <div>
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                  <span class={`badge badge-${item.data.category}`}>
-                    {item.data.category === 'security' ? 'Critical Advisory' : 'AI Special Report'}
-                  </span>
-                  {item.data.severity && (
-                    <span class={`severity-badge severity-${item.data.severity}`}>
-                      CVSS {item.data.cvss}
-                    </span>
-                  )}
-                  <span style="font-size:0.76rem; color:var(--ink-muted);">{item.data.readingTime}</span>
-                </div>
-                <a href={`/articles/${item.slug}`}>
-                  <h2 class="font-serif" style="font-size:1.22rem; line-height:1.3; margin:0 0 6px; color:var(--ink);">
-                    {item.data.title}
-                  </h2>
-                  <p style="font-size:0.86rem; color:var(--ink-secondary); margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                    {item.data.subtitle}
-                  </p>
-                </a>
-              </div>
-              <div style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; font-size:0.78rem; color:var(--ink-muted);">
-                <span>{item.data.author.name}</span>
-                <a href={`/articles/${item.slug}`} style="color:var(--accent); font-weight:600;">Read analysis →</a>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Main 2-Column Medium Feed & Sticky Sidebar -->
   <div class="container-wide">
     <div class="medium-grid">
-      <!-- Left Column (680px): Category Tabs + Story Stream -->
+      <!-- Left Column (680px): Borderless Tab Strip + Typographic Stream -->
       <div class="main-stream">
-        <div class="category-tabs" role="tablist" aria-label="Filter Stories by Category">
+        <div class="category-tabs" role="tablist" aria-label="Filter by Section">
           <button type="button" class="cat-tab active" data-filter-cat="all">
-            All Stories ({allArticles.length})
+            All
           </button>
           <button type="button" class="cat-tab" data-filter-cat="ai">
-            Artificial Intelligence
+            AI
           </button>
           <button type="button" class="cat-tab" data-filter-cat="security">
-            Security & Vulnerability
+            Security
           </button>
           <button type="button" class="cat-tab" data-filter-cat="tech-update">
-            Tech Updates
+            Systems
           </button>
           <button type="button" class="cat-tab" data-filter-cat="tech-news">
-            Tech News
+            Industry
           </button>
+          <a href="/security" class="cat-tab" style="margin-left:auto;">
+            CVE Index
+          </a>
         </div>
 
-        <div id="active-tag-banner" style="display:none; margin:14px 0 4px; padding:10px 14px; background:var(--bg-subtle); border:1px solid var(--border); border-radius:8px; font-size:0.84rem; align-items:center; justify-content:space-between;">
-          <span>Filtering by topic: <strong id="active-tag-name"></strong></span>
-          <button type="button" id="clear-tag-filter" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer;">Clear Filter ×</button>
+        <div
+          id="active-tag-banner"
+          style="display:none; padding:14px 0; border-bottom:1px solid var(--hairline); font-size:0.8125rem; color:var(--ink-muted); align-items:center; justify-content:space-between;"
+        >
+          <span>Topic: <strong id="active-tag-name" style="color:var(--ink); font-weight:500;"></strong></span>
+          <button
+            type="button"
+            id="clear-tag-filter"
+            style="background:none; border:none; color:var(--ink); font-size:0.8125rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:3px;"
+          >
+            Clear
+          </button>
         </div>
 
         <div id="articles-feed">
@@ -150,93 +111,68 @@ const popularTopics = [
         </div>
       </div>
 
-      <!-- Right Sidebar (360px, Sticky on Desktop) -->
-      <aside class="right-sidebar" aria-label="Executive Digest & Active CVE Radar">
+      <!-- Right Sidebar (Separated by a single 1px vertical hairline, zero boxed cards) -->
+      <aside class="right-sidebar" aria-label="Editorial Rail">
         <div class="sidebar-sticky">
-          <!-- 1. Active Security Radar (CVEs) -->
-          <div style="background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 28px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-              <h3 style="font-size:0.84rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin:0; color:var(--crit-text); display:flex; align-items:center; gap:6px;">
-                <span>●</span> Active Security Radar (CVEs)
-              </h3>
-              <a href="/security" style="font-size:0.75rem; font-weight:600; color:var(--accent);">Full Matrix →</a>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              {securityAdvisories.map((sec) => (
-                <a
-                  href={`/articles/${sec.slug}`}
-                  style="display:block; padding-bottom:11px; border-bottom:1px solid var(--border);"
-                >
-                  <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:4px;">
-                    <span class="font-mono" style="font-size:0.76rem; font-weight:600; color:var(--ink);">
-                      {sec.data.cveIds?.[0]}
-                    </span>
-                    <span class={`severity-badge severity-${sec.data.severity}`}>
-                      {sec.data.severity} · {sec.data.cvss}
-                    </span>
-                  </div>
-                  <div style="font-size:0.84rem; font-weight:600; color:var(--ink); line-height:1.35; margin-bottom:3px;">
-                    {sec.data.title.split(':')[0]}
-                  </div>
-                  <div class="font-mono" style="font-size:0.72rem; color:var(--ink-muted);">
-                    Patched: {sec.data.patchedVersions}
-                  </div>
+          <!-- Section 1: Active Advisories (Minimalist Ledger) -->
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">
+              <span>Active Advisories</span>
+              <a href="/security" class="sidebar-heading-link">Index</a>
+            </h2>
+            <div class="advisory-ledger">
+              {advisoryLedger.map((item) => (
+                <a href={`/articles/${item.slug}`} class="advisory-ledger-row">
+                  <span class="ledger-id">{item.id}</span>
+                  <span class="ledger-title">{item.label}</span>
+                  <span class={`ledger-score severity-${item.severity}`}>{item.cvss}</span>
                 </a>
               ))}
             </div>
-          </div>
+          </section>
 
-          <!-- 2. Executive Weekly Digest -->
-          <div style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border);">
-            <h3 style="font-size:0.84rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 12px; color:var(--ink);">
-              Executive Weekly Digest
-            </h3>
-            <ul style="margin:0; padding-left:18px; font-size:0.86rem; color:var(--ink-secondary); line-height:1.6;">
-              <li style="margin-bottom:8px;">
-                <strong>Runtime Patch Wave:</strong> Node.js (<code>22.23.4</code>), Bun (<code>1.4.4</code>), PHP (<code>8.5.12</code>/<code>8.4.27</code>), and Java SE shipped urgent RCE & TLS patches.
-              </li>
-              <li style="margin-bottom:8px;">
-                <strong>Proactive AI Agents:</strong> Anthropic launched <em>Claude Duet</em> (Opus 5.5) with a sandboxed Browser VM to challenge OpenAI <em>dots</em> (35M weekly users).
-              </li>
-              <li style="margin-bottom:8px;">
-                <strong>Open-Weight Breakthrough:</strong> Moonshot's 3T-parameter <em>Kimi K3.1 Pro</em> scored 65.7% on Terminal-Bench 4.0, beating GPT-6 Astra.
-              </li>
-              <li>
-                <strong>Astro 7.4.2 Speedup:</strong> Code-point UTF-8 length calculation cuts 44k-entry content sync from 60s to under 1 second.
-              </li>
-            </ul>
-          </div>
+          <!-- Section 2: Week in Brief (Medium Staff Picks Style) -->
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">
+              <span>Week in Brief</span>
+            </h2>
+            <div>
+              {staffPicks.map((pick) => (
+                <a href={`/articles/${pick.slug}`} class="staff-pick-item">
+                  <div class="staff-pick-kicker">
+                    <strong>{pick.data.author.name}</strong> in <strong>{categoryLabel[pick.data.category] || pick.data.category}</strong>
+                  </div>
+                  <h3 class="staff-pick-title">{pick.data.title}</h3>
+                </a>
+              ))}
+            </div>
+          </section>
 
-          <!-- 3. Popular Topics -->
-          <div style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border);">
-            <h3 style="font-size:0.84rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 12px; color:var(--ink);">
-              Popular Topics
-            </h3>
-            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <!-- Section 3: Topics (Medium Muted Pills) -->
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">
+              <span>Topics</span>
+            </h2>
+            <div class="topic-pills-wrap">
               {popularTopics.map((topic) => (
                 <button
                   type="button"
-                  class="tag-pill"
+                  class="topic-pill"
                   data-topic-chip={topic.toLowerCase()}
-                  style="cursor:pointer;"
                 >
                   {topic}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          <!-- 4. Your Reading List (Bookmarks) -->
-          <div>
-            <h3 style="font-size:0.84rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 10px; color:var(--ink); display:flex; align-items:center; gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <span>Your Reading List</span>
-            </h3>
+          <!-- Section 4: Reading List -->
+          <section class="sidebar-section" style="margin-bottom:0;">
+            <h2 class="sidebar-heading">
+              <span>Reading List</span>
+            </h2>
             <div id="sidebar-bookmarks-list"></div>
-          </div>
+          </section>
         </div>
       </aside>
     </div>
@@ -263,10 +199,15 @@ const popularTopics = [
           card.style.display = catMatch && tagMatch ? 'block' : 'none';
         });
 
+        topicChips.forEach(function (chip) {
+          var t = chip.getAttribute('data-topic-chip') || '';
+          chip.classList.toggle('active', activeTag === t && activeTag !== '');
+        });
+
         if (tagBanner && tagNameEl) {
           if (activeTag) {
             tagBanner.style.display = 'flex';
-            tagNameEl.textContent = activeTag.toUpperCase();
+            tagNameEl.textContent = activeTag;
           } else {
             tagBanner.style.display = 'none';
           }
