@@ -6,7 +6,7 @@ category: "ai"
 tags: ["AI Safety", "AI Agents", "GPT-6.1 Sol", "GPT-6 Astra", "UK AISI", "FTC"]
 readingTime: "7 min read"
 author:
-  name: "Dendy Swarandanu & AI Governance Desk"
+  name: "Mazzden"
   role: "AI Safety & Alignment Analysis"
 featured: false
 tldr:
