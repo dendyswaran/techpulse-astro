@@ -6,7 +6,7 @@ category: "ai"
 tags: ["AI Agents", "Anthropic", "Claude Duet", "OpenAI", "GPT-6 Astra", "Claude Opus 5.5"]
 readingTime: "6 min read"
 author:
-  name: "Dendy Swarandanu"
+  name: "Mazzden"
   role: "Editor-in-Chief, TechPulse"
 featured: true
 tldr:
