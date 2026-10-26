@@ -7,23 +7,23 @@ export async function getStaticPaths() {
   const categories = [
     {
       slug: 'ai',
-      title: 'Artificial Intelligence & Autonomous Agents',
-      desc: 'In-depth coverage of foundation models, proactive agents (Claude Duet, OpenAI dots), Terminal-Bench 4.0 evaluations, and AI safety governance.',
+      title: 'Artificial Intelligence',
+      desc: 'Foundation models, agentic architectures, inference economics, and automated vulnerability discovery.',
     },
     {
       slug: 'security',
-      title: 'Security & Vulnerability Advisories (CVEs)',
-      desc: 'Deep technical analyses of October 2026 critical vulnerabilities across Node.js, Bun, PHP, and Oracle Java SE with actionable remediation guides.',
+      title: 'Security & Advisories',
+      desc: 'In-depth technical analysis of zero-day exploits, CVE disclosures, cryptographic flaws, and runtime patches.',
     },
     {
       slug: 'tech-update',
-      title: 'Technology Updates & Engineering',
-      desc: 'Modern framework releases, Astro 7.4.2 Content Layer optimizations, and unified DevSecOps patching playbooks.',
+      title: 'Systems & Runtimes',
+      desc: 'Release notes, compiler improvements, and architectural changes across Node.js, Bun, Astro, and modern web toolchains.',
     },
     {
       slug: 'tech-news',
-      title: 'Tech News & Enterprise Adoption',
-      desc: 'Production rollouts of AI agents across government agencies, the USPTO patent examination backlog, supply-chain rules, and global retail.',
+      title: 'Industry & Infrastructure',
+      desc: 'Semiconductor supply chains, open-source governance, cloud infrastructure shifts, and engineering policy.',
     },
   ];
 
@@ -32,7 +32,9 @@ export async function getStaticPaths() {
   return categories.map((cat) => ({
     params: { category: cat.slug },
     props: {
-      catInfo: cat,
+      categorySlug: cat.slug,
+      categoryTitle: cat.title,
+      categoryDesc: cat.desc,
       articles: allArticles
         .filter((a) => a.data.category === cat.slug)
         .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
@@ -40,27 +42,36 @@ export async function getStaticPaths() {
   }));
 }
 
-const { catInfo, articles } = Astro.props;
+const { categorySlug, categoryTitle, categoryDesc, articles } = Astro.props;
 ---
 
-<BaseLayout title={`${catInfo.title} — TechPulse`} description={catInfo.desc} activeNav={catInfo.slug}>
-  <section style="background:var(--bg-subtle); border-bottom:1px solid var(--border); padding:36px 0;">
-    <div class="container-wide" style="max-width:760px; margin:0 auto;">
-      <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); margin-bottom:8px;">
-        Topic Channel · {articles.length} Verified Stories
+<BaseLayout
+  title={`${categoryTitle} — TechPulse`}
+  description={categoryDesc}
+  activeNav={categorySlug}
+>
+  <div class="container-reading" style="padding-top:44px; padding-bottom:64px;">
+    <header style="padding-bottom:28px; border-bottom:1px solid var(--hairline);">
+      <div class="article-kicker" style="margin-bottom:8px;">
+        <a href="/">All Stories</a>
+        <span>/</span>
+        <span>Section</span>
       </div>
-      <h1 class="font-serif" style="font-size:2.2rem; margin:0 0 10px; color:var(--ink);">
-        {catInfo.title}
+      <h1
+        class="font-serif"
+        style="font-size:clamp(2rem, 3.5vw, 2.4rem); font-weight:600; letter-spacing:-0.025em; margin:0 0 10px 0;"
+      >
+        {categoryTitle}
       </h1>
-      <p style="font-size:1rem; color:var(--ink-secondary); margin:0; line-height:1.6;">
-        {catInfo.desc}
+      <p style="font-size:1.02rem; color:var(--ink-secondary); margin:0; line-height:1.55;">
+        {categoryDesc}
       </p>
-    </div>
-  </section>
+    </header>
 
-  <div class="container-wide" style="max-width:760px; margin:0 auto; padding-top:16px;">
-    {articles.map((article) => (
-      <ArticleCard article={article} />
-    ))}
+    <div>
+      {articles.map((article) => (
+        <ArticleCard article={article} />
+      ))}
+    </div>
   </div>
 </BaseLayout>
