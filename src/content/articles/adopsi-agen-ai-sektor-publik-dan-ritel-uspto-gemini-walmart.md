@@ -6,7 +6,7 @@ category: "tech-news"
 tags: ["AI Agents", "Google Gemini", "USPTO", "Walmart", "Public Sector", "Enterprise AI"]
 readingTime: "6 min read"
 author:
-  name: "Dendy Swarandanu"
+  name: "Mazzden"
   role: "Editor-in-Chief, TechPulse"
 featured: false
 tldr:
