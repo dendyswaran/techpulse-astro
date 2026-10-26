@@ -6,7 +6,7 @@ category: "tech-update"
 tags: ["DevSecOps", "Node.js", "Bun", "PHP", "Java", "Patch Management"]
 readingTime: "6 min read"
 author:
-  name: "Dendy Swarandanu & Infrastructure Team"
+  name: "Mazzden"
   role: "Cloud & DevSecOps Practice"
 featured: false
 tldr:
