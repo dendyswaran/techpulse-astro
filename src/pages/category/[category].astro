@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+
+export async function getStaticPaths() {
+  const categories = [
+    {
+      slug: 'ai',
+      title: 'Artificial Intelligence & Autonomous Agents',
+      desc: 'In-depth coverage of foundation models, proactive agents (Claude Duet, OpenAI dots), Terminal-Bench 4.0 evaluations, and AI safety governance.',
+    },
+    {
+      slug: 'security',
+      title: 'Security & Vulnerability Advisories (CVEs)',
+      desc: 'Deep technical analyses of October 2026 critical vulnerabilities across Node.js, Bun, PHP, and Oracle Java SE with actionable remediation guides.',
+    },
+    {
+      slug: 'tech-update',
+      title: 'Technology Updates & Engineering',
+      desc: 'Modern framework releases, Astro 7.4.2 Content Layer optimizations, and unified DevSecOps patching playbooks.',
+    },
+    {
+      slug: 'tech-news',
+      title: 'Tech News & Enterprise Adoption',
+      desc: 'Production rollouts of AI agents across government agencies, the USPTO patent examination backlog, supply-chain rules, and global retail.',
+    },
+  ];
+
+  const allArticles = await getCollection('articles');
+
+  return categories.map((cat) => ({
+    params: { category: cat.slug },
+    props: {
+      catInfo: cat,
+      articles: allArticles
+        .filter((a) => a.data.category === cat.slug)
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { catInfo, articles } = Astro.props;
+---
+
+<BaseLayout title={`${catInfo.title} — TechPulse`} description={catInfo.desc} activeNav={catInfo.slug}>
+  <section style="background:var(--bg-subtle); border-bottom:1px solid var(--border); padding:36px 0;">
+    <div class="container-wide" style="max-width:760px; margin:0 auto;">
+      <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); margin-bottom:8px;">
+        Topic Channel · {articles.length} Verified Stories
+      </div>
+      <h1 class="font-serif" style="font-size:2.2rem; margin:0 0 10px; color:var(--ink);">
+        {catInfo.title}
+      </h1>
+      <p style="font-size:1rem; color:var(--ink-secondary); margin:0; line-height:1.6;">
+        {catInfo.desc}
+      </p>
+    </div>
+  </section>
+
+  <div class="container-wide" style="max-width:760px; margin:0 auto; padding-top:16px;">
+    {articles.map((article) => (
+      <ArticleCard article={article} />
+    ))}
+  </div>
+</BaseLayout>
