@@ -6,7 +6,7 @@ category: "ai"
 tags: ["LLM", "Kimi K3.1 Pro", "Open-Weight", "Terminal-Bench", "DeepSeek", "llama.cpp"]
 readingTime: "6 min read"
 author:
-  name: "TechPulse AI Research"
+  name: "Mazzden"
   role: "AI Infrastructure & Benchmarks"
 featured: false
 tldr:
