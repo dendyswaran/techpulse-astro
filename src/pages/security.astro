@@ -1,178 +1,181 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
 
-const allArticles = await getCollection('articles');
-const securityArticles = allArticles
-  .filter((a) => a.data.category === 'security')
-  .sort((a, b) => (b.data.cvss || 0) - (a.data.cvss || 0));
+const allArticles = (await getCollection('articles')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
 
-const cveMatrix = [
+const securityArticles = allArticles.filter(
+  (a) =>
+    a.data.category === 'security' ||
+    (a.data.cveIds && a.data.cveIds.length > 0)
+);
+
+const cveRecords = [
   {
     id: 'CVE-2026-111497',
-    runtime: 'Node.js & Bun',
-    component: 'node:zlib / Bundled Brotli C Library',
+    component: 'Node.js Brotli Stream Decoder',
     severity: 'CRITICAL',
-    cvss: 9.8,
-    summary: 'Out-of-bounds write when decoding crafted Brotli streams; enables RCE or heap memory disclosure.',
-    affected: 'Node.js 22.x < 22.23.4, 24.x < 24.22.1, 26.x < 26.12.1 (Node 20 EOL); Bun < 1.4.4',
-    patched: 'Node.js 22.23.4 / 24.22.1 / 26.12.1 & Bun 1.4.4 (brotli 1.2.1)',
+    cvss: '9.8',
+    affected: '20.x, 22.x, 24.x, 25.x',
+    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
     slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
   },
   {
-    id: 'CVE-2026-109618 / CVE-2026-109619',
-    runtime: 'PHP',
-    component: 'PHP SAPI Request Initialization ("PHP2Shell")',
+    id: 'CVE-2026-109618',
+    component: 'PHP SAPI Multipart Parser (php2shell)',
     severity: 'CRITICAL',
-    cvss: 9.2,
-    summary: 'Pre-Authentication RCE impacting ~70% of PHP websites; found by Calif with GPT-5.6 Sol & Wiz. Active exploitation detected.',
-    affected: 'PHP < 8.5.12, < 8.4.27, < 8.3.36, < 8.2.35',
-    patched: 'PHP 8.5.12, 8.4.27, 8.3.36, 8.2.35',
+    cvss: '9.2',
+    affected: '8.2.x < 8.2.28, 8.3.x < 8.3.19, 8.4.x < 8.4.6',
+    patched: 'PHP 8.2.28, 8.3.19, 8.4.6',
     slug: 'php2shell-rce-cve-2026-109618-ditemukan-ai',
   },
   {
-    id: 'GHSA-cf8x-9m69-3gg3',
-    runtime: 'Bun',
-    component: 'HTTP/3 QPACK Decoder ("Header Accordions")',
+    id: 'GHSA-cf8x-9m69',
+    component: 'Bun HTTP/3 QPACK Decoder',
     severity: 'HIGH',
-    cvss: 9.2,
-    summary: 'QPACK memory amplification on HTTP/3 servers (20 KB stalls CPU, 6 MB exhausts 2 GB RAM when http3: true).',
-    affected: 'Bun < 1.4.4 (with http3: true)',
-    patched: 'Bun 1.4.4 (must recompile bun build --compile binaries)',
+    cvss: '9.2',
+    affected: 'Bun < v1.4.4',
+    patched: 'Bun v1.4.4',
     slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
   },
   {
     id: 'CVE-2026-91403',
-    runtime: 'Java SE & GraalVM',
-    component: 'Java Secure Socket Extension (JSSE / TLS)',
+    component: 'Oracle Java SE / GraalVM JSSE TLS',
     severity: 'CRITICAL',
-    cvss: 9.1,
-    summary: 'Oracle Out-of-Band Advisory: Pre-Auth network vulnerability over TLS in the JSSE component.',
-    affected: 'Java SE 8u511, 11.0.33, 17.0.21, 21.0.13, 25.0.5, 27.0.1 & GraalVM',
-    patched: 'Oracle Out-of-Band October 2026 Patch / OpenJDK Update',
+    cvss: '9.1',
+    affected: 'JDK 8u431, 11.0.25, 17.0.13, 21.0.5, 25.0.1',
+    patched: 'Oracle Out-of-Band Security Alert Patch',
     slug: 'oracle-java-jsse-cve-2026-91403-out-of-band-alert',
   },
   {
-    id: 'CVE-2026-105482 & CVE-2026-105483',
-    runtime: 'Node.js',
-    component: 'node:dns (c-ares) & node:tls',
+    id: 'CVE-2026-111500',
+    component: 'Node.js TLS ALPN Callback Race',
     severity: 'HIGH',
-    cvss: 7.5,
-    summary: 'Hostname truncation via NUL bytes in dns.resolve*() and TLS certificate verification bypass using fullwidth IPv4 digits.',
-    affected: 'Node.js 22.x < 22.23.4, 24.x < 24.22.1, 26.x < 26.12.1',
-    patched: 'Node.js 22.23.4, 24.22.1, 26.12.1',
+    cvss: '8.1',
+    affected: 'Node.js 22.x, 24.x, 25.x',
+    patched: 'v22.22.4, v24.16.0, v25.10.0',
     slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
   },
   {
-    id: 'GHSA-26q8-h657-pf84',
-    runtime: 'Bun',
-    component: 'Bundled Root CA Store (eMudhra / emSign)',
+    id: 'CVE-2026-111508',
+    component: 'Node.js Permission Model FS Bypass',
     severity: 'HIGH',
-    cvss: 7.4,
-    summary: 'Removal of 8 compromised eMudhra (emSign) intermediate Certificate Authority (CA) keys.',
-    affected: 'Bun < 1.4.4',
-    patched: 'Bun 1.4.4',
+    cvss: '7.7',
+    affected: 'Node.js 20.x, 22.x, 24.x, 25.x',
+    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
+    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
+  },
+  {
+    id: 'GHSA-54x7-74r2',
+    component: 'Bun Node.js Brotli Stream Port',
+    severity: 'HIGH',
+    cvss: '7.5',
+    affected: 'Bun < v1.4.4',
+    patched: 'Bun v1.4.4',
     slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
+  },
+  {
+    id: 'CVE-2026-111510',
+    component: 'Node.js HTTP/2 CONTINUATION Flood',
+    severity: 'HIGH',
+    cvss: '7.5',
+    affected: 'Node.js 20.x, 22.x, 24.x, 25.x',
+    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
+    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
+  },
+  {
+    id: 'CVE-2026-111498',
+    component: 'Node.js llhttp Chunked Extension Smuggling',
+    severity: 'MEDIUM',
+    cvss: '6.5',
+    affected: 'Node.js 20.x, 22.x, 24.x, 25.x',
+    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
+    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
   },
 ];
 ---
 
 <BaseLayout
-  title="Security & CVE Tracker (October 2026) — TechPulse"
-  description="Interactive security vulnerability matrix tracking critical October 2026 CVEs across Node.js, Bun, PHP, and Oracle Java SE."
+  title="CVE & Advisory Index — TechPulse"
+  description="Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS v3.1 scores, and patched runtime releases."
   activeNav="cve-matrix"
 >
-  <section style="background:var(--bg-subtle); border-bottom:1px solid var(--border); padding:36px 0;">
-    <div class="container-wide">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-        <span class="severity-badge severity-CRITICAL">LIVE TRACKER · OCTOBER 2026</span>
-        <span style="font-size:0.82rem; color:var(--ink-muted);">Updated October 26, 2026</span>
+  <div class="container-wide" style="padding-top:44px; padding-bottom:64px;">
+    <header style="max-width:680px; margin-bottom:36px;">
+      <div class="article-kicker" style="margin-bottom:10px;">
+        <span>Security Ledger</span>
+        <span>·</span>
+        <span>October 2026</span>
       </div>
-      <h1 class="font-serif" style="font-size:2.3rem; margin:0 0 10px; color:var(--ink);">
-        Security & Vulnerability Advisory Matrix (CVEs)
-      </h1>
-      <p style="font-size:1.02rem; color:var(--ink-secondary); max-width:780px; margin:0; line-height:1.6;">
-        A fast-reference matrix for DevSecOps, SRE, and software engineering teams tracking Critical & High severity runtime advisories alongside verified patch targets.
-      </p>
-    </div>
-  </section>
-
-  <div class="container-wide" style="padding-top:28px;">
-    <!-- Runtime Filter Buttons -->
-    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
-      <div style="display:flex; flex-wrap:wrap; gap:8px;" role="group" aria-label="Filter by Runtime Ecosystem">
-        <button type="button" class="tag-pill cve-filter-btn active" data-runtime-filter="all" style="cursor:pointer; font-weight:600;">
-          All Runtimes ({cveMatrix.length})
-        </button>
-        <button type="button" class="tag-pill cve-filter-btn" data-runtime-filter="node" style="cursor:pointer;">
-          Node.js
-        </button>
-        <button type="button" class="tag-pill cve-filter-btn" data-runtime-filter="bun" style="cursor:pointer;">
-          Bun
-        </button>
-        <button type="button" class="tag-pill cve-filter-btn" data-runtime-filter="php" style="cursor:pointer;">
-          PHP
-        </button>
-        <button type="button" class="tag-pill cve-filter-btn" data-runtime-filter="java" style="cursor:pointer;">
-          Java SE / GraalVM
-        </button>
-      </div>
-
-      <a
-        href="/articles/panduan-patch-infrastruktur-oktober-2026-nodejs-bun-php-java"
-        style="font-size:0.85rem; font-weight:600; color:var(--accent);"
+      <h1
+        class="font-serif"
+        style="font-size:clamp(2rem, 3.6vw, 2.5rem); font-weight:600; letter-spacing:-0.025em; line-height:1.15; margin:0 0 12px 0;"
       >
-        Read Full DevSecOps Patching Playbook & Audit Script →
-      </a>
+        Vulnerability & Advisory Index
+      </h1>
+      <p style="font-size:1.05rem; color:var(--ink-secondary); line-height:1.55; margin:0;">
+        Verified Common Vulnerabilities and Exposures across server runtimes, language toolchains, and enterprise cryptography stacks, indexed with affected branches and upstream patch releases.
+      </p>
+    </header>
+
+    <!-- Minimal Filter Tabs -->
+    <div class="category-tabs" style="margin-bottom:8px;">
+      <button type="button" class="cat-tab active" data-sev-filter="ALL">
+        All Advisories ({cveRecords.length})
+      </button>
+      <button type="button" class="cat-tab" data-sev-filter="CRITICAL">
+        Critical (CVSS ≥ 9.0)
+      </button>
+      <button type="button" class="cat-tab" data-sev-filter="HIGH">
+        High (7.0 – 8.9)
+      </button>
+      <button type="button" class="cat-tab" data-sev-filter="MEDIUM">
+        Medium
+      </button>
     </div>
 
-    <!-- Interactive CVE Table -->
-    <div style="border:1px solid var(--border); border-radius:10px; overflow-x:auto; background:var(--bg-card); box-shadow:var(--shadow-sm);">
-      <table style="width:100%; border-collapse:collapse; font-size:0.88rem; text-align:left;">
+    <!-- Clean Technical Specification Table -->
+    <div class="cve-table-wrap" style="margin-bottom:56px;">
+      <table class="cve-spec-table">
         <thead>
-          <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
-            <th style="padding:14px 16px;">CVE / GHSA ID</th>
-            <th style="padding:14px 16px;">Runtime & Component</th>
-            <th style="padding:14px 16px;">Severity</th>
-            <th style="padding:14px 16px;">Impact Summary</th>
-            <th style="padding:14px 16px;">Affected Versions</th>
-            <th style="padding:14px 16px;">Patched Versions</th>
-            <th style="padding:14px 16px;">Analysis</th>
+          <tr>
+            <th>Identifier</th>
+            <th>Component / Vector</th>
+            <th>Severity</th>
+            <th>Affected Branches</th>
+            <th>Patched Release</th>
+            <th style="text-align:right;">Analysis</th>
           </tr>
         </thead>
         <tbody id="cve-table-body">
-          {cveMatrix.map((row) => (
-            <tr
-              data-runtime={row.runtime.toLowerCase()}
-              style="border-bottom:1px solid var(--border);"
-            >
-              <td class="font-mono" style="padding:16px; font-weight:700; color:var(--ink); white-space:nowrap;">
-                {row.id}
+          {cveRecords.map((row) => (
+            <tr data-row-sev={row.severity}>
+              <td class="font-mono" style="font-weight:500; font-size:0.8125rem; white-space:nowrap;">
+                <a href={`/articles/${row.slug}`} style="text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--hairline-strong);">
+                  {row.id}
+                </a>
               </td>
-              <td style="padding:16px;">
-                <div style="font-weight:700; color:var(--ink);">{row.runtime}</div>
-                <div class="font-mono" style="font-size:0.75rem; color:var(--ink-muted);">{row.component}</div>
-              </td>
-              <td style="padding:16px; white-space:nowrap;">
-                <span class={`severity-badge severity-${row.severity}`}>
+              <td style="font-weight:500; color:var(--ink);">{row.component}</td>
+              <td class="font-mono" style="font-size:0.78rem; white-space:nowrap;">
+                <span class={`severity-${row.severity}`} style="font-weight:500;">
                   {row.severity} · {row.cvss}
                 </span>
               </td>
-              <td style="padding:16px; color:var(--ink-secondary); max-width:300px; line-height:1.5;">
-                {row.summary}
-              </td>
-              <td class="font-mono" style="padding:16px; font-size:0.78rem; color:var(--crit-text);">
+              <td class="font-mono" style="font-size:0.78rem; color:var(--ink-secondary);">
                 {row.affected}
               </td>
-              <td class="font-mono" style="padding:16px; font-size:0.78rem; font-weight:600; color:var(--accent);">
+              <td class="font-mono" style="font-size:0.78rem; color:var(--ink);">
                 {row.patched}
               </td>
-              <td style="padding:16px; white-space:nowrap;">
+              <td style="text-align:right; white-space:nowrap;">
                 <a
                   href={`/articles/${row.slug}`}
-                  style="font-weight:600; color:var(--accent); text-decoration:underline;"
+                  style="font-size:0.8125rem; color:var(--ink-secondary); text-decoration:underline; text-underline-offset:3px;"
                 >
-                  Details →
+                  Read →
                 </a>
               </td>
             </tr>
@@ -181,54 +184,35 @@ const cveMatrix = [
       </table>
     </div>
 
-    <!-- Full Advisory Cards List -->
-    <h2 class="font-serif" style="font-size:1.6rem; margin:48px 0 20px; color:var(--ink);">
-      In-Depth Technical Advisory Reports
-    </h2>
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:24px;">
-      {securityArticles.map((art) => (
-        <a
-          href={`/articles/${art.slug}`}
-          style="display:flex; flex-direction:column; justify-content:space-between; padding:24px; border:1px solid var(--border); border-radius:10px; background:var(--bg-card);"
-        >
-          <div>
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-              <span class={`severity-badge severity-${art.data.severity}`}>
-                {art.data.severity} · CVSS {art.data.cvss}
-              </span>
-              <span style="font-size:0.78rem; color:var(--ink-muted);">{art.data.readingTime}</span>
-            </div>
-            <h3 class="font-serif" style="font-size:1.25rem; line-height:1.3; margin:0 0 8px; color:var(--ink);">
-              {art.data.title}
-            </h3>
-            <p style="font-size:0.88rem; color:var(--ink-secondary); line-height:1.55; margin:0 0 14px;">
-              {art.data.subtitle}
-            </p>
-          </div>
-          <div style="border-top:1px solid var(--border); padding-top:12px; font-size:0.78rem; display:flex; justify-content:space-between; align-items:center;">
-            <span class="font-mono" style="color:var(--ink-muted);">Patched: {art.data.patchedVersions}</span>
-            <span style="color:var(--accent); font-weight:600;">Read Advisory →</span>
-          </div>
-        </a>
-      ))}
-    </div>
+    <!-- Security Dispatches -->
+    <section style="max-width:680px;">
+      <h2
+        class="sidebar-heading"
+        style="padding-bottom:12px; border-bottom:1px solid var(--hairline); margin-bottom:0;"
+      >
+        <span>Security Dispatches & Post-Mortems</span>
+      </h2>
+      <div>
+        {securityArticles.map((article) => (
+          <ArticleCard article={article} />
+        ))}
+      </div>
+    </section>
   </div>
 
   <script is:inline>
     (function () {
-      var btns = document.querySelectorAll('[data-runtime-filter]');
+      var btns = document.querySelectorAll('[data-sev-filter]');
       var rows = document.querySelectorAll('#cve-table-body tr');
-
       btns.forEach(function (btn) {
         btn.addEventListener('click', function () {
-          var filter = btn.getAttribute('data-runtime-filter') || 'all';
+          var sev = btn.getAttribute('data-sev-filter');
           btns.forEach(function (b) {
-            b.style.background = b === btn ? 'var(--ink)' : '';
-            b.style.color = b === btn ? 'var(--bg)' : '';
+            b.classList.toggle('active', b === btn);
           });
           rows.forEach(function (row) {
-            var rt = row.getAttribute('data-runtime') || '';
-            row.style.display = filter === 'all' || rt.indexOf(filter) !== -1 ? '' : 'none';
+            var rSev = row.getAttribute('data-row-sev');
+            row.style.display = sev === 'ALL' || rSev === sev ? '' : 'none';
           });
         });
       });
