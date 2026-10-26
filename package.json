@@ -1,0 +1,16 @@
+{
+  "name": "techpulse-id-astro",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "TechPulse ID — Rangkuman Update Teknologi, AI & Security Vulnerability (Medium-style Editorial Platform)",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.16.6",
+    "zod": "^3.24.2"
+  }
+}
