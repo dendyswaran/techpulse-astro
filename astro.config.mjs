@@ -1,7 +1,9 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://techpulsenews.tech',
+  site: 'https://www.techpulsenews.tech',
+  trailingSlash: 'never',
+  compressHTML: true,
   markdown: {
     shikiConfig: {
       themes: {

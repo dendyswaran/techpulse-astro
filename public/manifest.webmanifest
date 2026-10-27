@@ -1,0 +1,16 @@
+{
+  "name": "TechPulse — Systems, AI & Security Advisories",
+  "short_name": "TechPulse",
+  "description": "Independent engineering journalism, foundation model benchmarks, and runtime security advisories (Node.js, Bun, PHP, Java, AI infrastructure).",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#242424",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
