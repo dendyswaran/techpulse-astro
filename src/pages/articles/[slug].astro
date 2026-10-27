@@ -22,6 +22,9 @@ const {
   tags,
   readingTime,
   author,
+  coverImage,
+  coverAlt,
+  coverCaption,
   tldr,
   cveIds,
   severity,
@@ -57,6 +60,7 @@ const relatedArticles = allArticles
   title={`${title} — TechPulse`}
   description={subtitle}
   activeNav={category}
+  ogImage={coverImage}
 >
   <div class="progress-bar" id="reading-progress-bar"></div>
 
@@ -120,6 +124,23 @@ const relatedArticles = allArticles
           </button>
         </div>
       </div>
+
+      {coverImage && (
+        <figure class="article-cover-figure">
+          <img
+            src={coverImage}
+            alt={coverAlt || title}
+            width="1200"
+            height="675"
+            loading="eager"
+            decoding="async"
+            class="article-cover-img"
+          />
+          {coverCaption && (
+            <figcaption class="article-cover-caption">{coverCaption}</figcaption>
+          )}
+        </figure>
+      )}
     </header>
 
     <!-- Editorial Abstract / Margin Rule (The Brief) -->
@@ -181,7 +202,7 @@ const relatedArticles = allArticles
     <!-- Footnote-style Primary Sources -->
     {sources && sources.length > 0 && (
       <section class="sources-block">
-        <h2 class="sources-heading">Sources & Primary Advisories</h2>
+        <h2 class="sources-heading">Sources &amp; Primary Advisories</h2>
         <ol class="sources-list">
           {sources.map((src) => (
             <li>

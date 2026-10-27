@@ -3,9 +3,10 @@ import type { CollectionEntry } from 'astro:content';
 
 interface Props {
   article: CollectionEntry<'articles'>;
+  lead?: boolean;
 }
 
-const { article } = Astro.props;
+const { article, lead = false } = Astro.props;
 const {
   title,
   subtitle,
@@ -14,6 +15,8 @@ const {
   tags,
   readingTime,
   author,
+  coverImage,
+  coverAlt,
   cveIds,
   severity,
   cvss,
@@ -36,49 +39,81 @@ const primaryCve = cveIds && cveIds.length > 0 ? cveIds[0] : null;
 ---
 
 <article
-  class="story-card"
+  class:list={['story-card', { 'story-card-lead': lead }]}
   data-category={category}
   data-tags={tags.join(',').toLowerCase()}
 >
-  <div class="story-kicker">
-    <span class="kicker-author">{author.name}</span>
-    <span>in</span>
-    <a href={`/category/${category}`} class="kicker-cat">
-      {categoryLabel[category] || category}
+  {coverImage && (
+    <a href={`/articles/${article.slug}`} class="story-lead-cover" aria-label={title}>
+      <img
+        src={coverImage}
+        alt={coverAlt || title}
+        width="1200"
+        height="675"
+        loading={lead ? 'eager' : 'lazy'}
+        decoding="async"
+        class="story-lead-cover-img"
+      />
     </a>
-    <span>·</span>
-    <time datetime={pubDate.toISOString()}>{formattedDate}</time>
-    {primaryCve && (
-      <>
+  )}
+
+  <div class="story-row">
+    <div class="story-main">
+      <div class="story-kicker">
+        <span class="kicker-author">{author.name}</span>
+        <span>in</span>
+        <a href={`/category/${category}`} class="kicker-cat">
+          {categoryLabel[category] || category}
+        </a>
         <span>·</span>
-        <span class={`kicker-cve ${severity ? `severity-${severity}` : ''}`}>
-          {primaryCve}{cvss ? ` · ${cvss}` : ''}
-        </span>
-      </>
-    )}
-  </div>
+        <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+        {primaryCve && (
+          <>
+            <span>·</span>
+            <span class={`kicker-cve ${severity ? `severity-${severity}` : ''}`}>
+              {primaryCve}{cvss ? ` · ${cvss}` : ''}
+            </span>
+          </>
+        )}
+      </div>
 
-  <a href={`/articles/${article.slug}`} style="display: block;">
-    <h2 class="story-title">{title}</h2>
-    <p class="story-subtitle">{subtitle}</p>
-  </a>
+      <a href={`/articles/${article.slug}`} class="story-text-link">
+        <h2 class="story-title">{title}</h2>
+        <p class="story-subtitle">{subtitle}</p>
+      </a>
 
-  <div class="story-footer">
-    <div class="story-footer-meta">
-      {primaryTopic && <span class="story-topic-pill">{primaryTopic}</span>}
-      <span>{readingTime}</span>
+      <div class="story-footer">
+        <div class="story-footer-meta">
+          {primaryTopic && <span class="story-topic-pill">{primaryTopic}</span>}
+          <span>{readingTime}</span>
+        </div>
+
+        <button
+          type="button"
+          class="bookmark-icon-btn"
+          data-bookmark-slug={article.slug}
+          aria-label={`Bookmark ${title}`}
+          title="Save to reading list"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <button
-      type="button"
-      class="bookmark-icon-btn"
-      data-bookmark-slug={article.slug}
-      aria-label={`Bookmark ${title}`}
-      title="Save to reading list"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-      </svg>
-    </button>
+    {coverImage && (
+      <a href={`/articles/${article.slug}`} class="story-thumb-link" aria-hidden="true" tabindex="-1">
+        <img
+          src={coverImage}
+          alt={coverAlt || title}
+          width="320"
+          height="214"
+          loading="lazy"
+          decoding="async"
+          class="story-thumb-img"
+        />
+      </a>
+    )}
   </div>
 </article>

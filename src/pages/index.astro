@@ -64,6 +64,7 @@ const popularTopics = [
 <BaseLayout
   title="TechPulse — Systems, AI & Security Advisories"
   activeNav="home"
+  ogImage={allArticles[0]?.data.coverImage}
 >
   <div class="container-wide">
     <div class="medium-grid">
@@ -105,8 +106,8 @@ const popularTopics = [
         </div>
 
         <div id="articles-feed">
-          {allArticles.map((article) => (
-            <ArticleCard article={article} />
+          {allArticles.map((article, index) => (
+            <ArticleCard article={article} lead={index === 0} />
           ))}
         </div>
       </div>
@@ -191,12 +192,20 @@ const popularTopics = [
       var activeTag = '';
 
       function applyFilter() {
+        var firstVisibleFound = false;
         cards.forEach(function (card) {
           var cardCat = card.getAttribute('data-category');
           var cardTags = card.getAttribute('data-tags') || '';
           var catMatch = activeCat === 'all' || cardCat === activeCat;
           var tagMatch = !activeTag || cardTags.indexOf(activeTag) !== -1;
-          card.style.display = catMatch && tagMatch ? 'block' : 'none';
+          var visible = catMatch && tagMatch;
+          card.style.display = visible ? 'block' : 'none';
+          if (visible && !firstVisibleFound) {
+            card.classList.add('story-card-lead');
+            firstVisibleFound = true;
+          } else {
+            card.classList.remove('story-card-lead');
+          }
         });
 
         topicChips.forEach(function (chip) {

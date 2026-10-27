@@ -6,13 +6,22 @@ interface Props {
   title?: string;
   description?: string;
   activeNav?: string;
+  ogImage?: string;
 }
 
 const {
   title = 'TechPulse',
   description = 'Independent reporting on software systems, foundation models, and runtime security advisories.',
   activeNav = 'home',
+  ogImage,
 } = Astro.props;
+
+const siteOrigin = Astro.site ? Astro.site.toString().replace(/\/$/, '') : 'https://techpulsenews.tech';
+const resolvedOgImage = ogImage
+  ? ogImage.startsWith('http')
+    ? ogImage
+    : `${siteOrigin}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`
+  : undefined;
 
 const allArticles = await getCollection('articles');
 const searchIndex = allArticles
@@ -38,6 +47,12 @@ const searchIndex = allArticles
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="article" />
+    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
+    <meta name="twitter:card" content={resolvedOgImage ? 'summary_large_image' : 'summary'} />
+    {resolvedOgImage && <meta name="twitter:image" content={resolvedOgImage} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script is:inline>
       (function () {
@@ -110,7 +125,7 @@ const searchIndex = allArticles
       <div class="container-wide" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:16px;">
         <div>
           <span class="font-serif" style="font-weight:600; color:var(--ink);">TechPulse</span>
-          <span style="margin-left:10px;">Systems, AI & Security Advisories</span>
+          <span style="margin-left:10px;">Systems, AI &amp; Security Advisories</span>
         </div>
         <div style="display:flex; gap:20px; flex-wrap:wrap;">
           <a href="/" class="util-link">Archive</a>
