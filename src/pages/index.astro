@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 
+const SITE = 'https://www.techpulsenews.tech';
+
 const allArticles = (await getCollection('articles')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
@@ -59,14 +61,45 @@ const popularTopics = [
   'TLS',
   'RCE',
 ];
+
+const homeCollectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${SITE}/#collection`,
+  name: 'TechPulse — Systems, AI & Security Advisories',
+  description:
+    'Independent engineering reporting on software systems, foundation models, and runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, and AI infrastructure.',
+  url: `${SITE}/`,
+  isPartOf: { '@id': `${SITE}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListOrder: 'https://schema.org/ItemListOrderDescending',
+    numberOfItems: allArticles.length,
+    itemListElement: allArticles.map((entry, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      url: `${SITE}/articles/${entry.slug}`,
+      name: entry.data.title,
+    })),
+  },
+};
 ---
 
 <BaseLayout
   title="TechPulse — Systems, AI & Security Advisories"
+  description="Independent engineering reporting on software systems, foundation models, and runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, and AI infrastructure."
   activeNav="home"
+  canonicalPath="/"
   ogImage={allArticles[0]?.data.coverImage}
+  ogImageAlt={allArticles[0]?.data.coverAlt || allArticles[0]?.data.title}
+  preloadImage={allArticles[0]?.data.coverImage}
+  jsonLd={homeCollectionSchema}
 >
   <div class="container-wide">
+    <h1 class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+      TechPulse — Systems, AI &amp; Security Advisories
+    </h1>
+
     <div class="medium-grid">
       <!-- Left Column (680px): Borderless Tab Strip + Typographic Stream -->
       <div class="main-stream">
@@ -223,6 +256,16 @@ const popularTopics = [
         }
       }
 
+      // Check initial ?tag= URL parameter
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var urlTag = params.get('tag');
+        if (urlTag) {
+          activeTag = urlTag.toLowerCase();
+          applyFilter();
+        }
+      } catch (e) {}
+
       tabs.forEach(function (tab) {
         tab.addEventListener('click', function () {
           activeCat = tab.getAttribute('data-filter-cat') || 'all';
@@ -230,6 +273,9 @@ const popularTopics = [
             t.classList.toggle('active', t === tab);
           });
           applyFilter();
+          if (window.tpTrack) {
+            window.tpTrack('category_filter', { category: activeCat });
+          }
         });
       });
 
@@ -238,6 +284,9 @@ const popularTopics = [
           var t = chip.getAttribute('data-topic-chip') || '';
           activeTag = activeTag === t ? '' : t;
           applyFilter();
+          if (window.tpTrack && activeTag) {
+            window.tpTrack('topic_filter', { topic: activeTag });
+          }
         });
       });
 

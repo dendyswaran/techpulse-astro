@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 
+const SITE = 'https://www.techpulsenews.tech';
+
 const allArticles = (await getCollection('articles')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
@@ -96,15 +98,72 @@ const cveRecords = [
     slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
   },
 ];
+
+const securityPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${SITE}/security#collection`,
+  name: 'CVE & Vulnerability Advisory Index — TechPulse',
+  description:
+    'Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS v3.1 scores, affected branches, and patched runtime releases across Node.js, Bun, PHP, Java SE, and AI infrastructure.',
+  url: `${SITE}/security`,
+  isPartOf: { '@id': `${SITE}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    name: 'Active October 2026 Runtime & Infrastructure CVEs',
+    numberOfItems: cveRecords.length,
+    itemListElement: cveRecords.map((row, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: `${row.id} — ${row.component} (${row.severity}, CVSS ${row.cvss})`,
+      url: `${SITE}/articles/${row.slug}`,
+    })),
+  },
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${SITE}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'CVE & Advisory Index',
+      item: `${SITE}/security`,
+    },
+  ],
+};
 ---
 
 <BaseLayout
-  title="CVE & Advisory Index — TechPulse"
-  description="Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS v3.1 scores, and patched runtime releases."
+  title="CVE & Vulnerability Advisory Index (October 2026) — TechPulse"
+  description="Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS v3.1 scores, affected branches, and patched releases across Node.js, Bun, PHP, Java SE, and AI infrastructure."
   activeNav="cve-matrix"
+  canonicalPath="/security"
+  ogImage={securityArticles[0]?.data.coverImage}
+  ogImageAlt="TechPulse CVE & Vulnerability Advisory Index"
+  jsonLd={[securityPageSchema, breadcrumbSchema]}
 >
   <div class="container-wide" style="padding-top:44px; padding-bottom:64px;">
     <header style="max-width:680px; margin-bottom:36px;">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li>
+            <a href="/">Home</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <span class="breadcrumb-current" aria-current="page">CVE &amp; Advisory Index</span>
+          </li>
+        </ol>
+      </nav>
+
       <div class="article-kicker" style="margin-bottom:10px;">
         <span>Security Ledger</span>
         <span>·</span>
@@ -114,7 +173,7 @@ const cveRecords = [
         class="font-serif"
         style="font-size:clamp(2rem, 3.6vw, 2.5rem); font-weight:600; letter-spacing:-0.025em; line-height:1.15; margin:0 0 12px 0;"
       >
-        Vulnerability & Advisory Index
+        Vulnerability &amp; Advisory Index
       </h1>
       <p style="font-size:1.05rem; color:var(--ink-secondary); line-height:1.55; margin:0;">
         Verified Common Vulnerabilities and Exposures across server runtimes, language toolchains, and enterprise cryptography stacks, indexed with affected branches and upstream patch releases.
@@ -190,7 +249,7 @@ const cveRecords = [
         class="sidebar-heading"
         style="padding-bottom:12px; border-bottom:1px solid var(--hairline); margin-bottom:0;"
       >
-        <span>Security Dispatches & Post-Mortems</span>
+        <span>Security Dispatches &amp; Post-Mortems</span>
       </h2>
       <div>
         {securityArticles.map((article) => (
@@ -214,6 +273,9 @@ const cveRecords = [
             var rSev = row.getAttribute('data-row-sev');
             row.style.display = sev === 'ALL' || rSev === sev ? '' : 'none';
           });
+          if (window.tpTrack) {
+            window.tpTrack('cve_severity_filter', { severity: sev });
+          }
         });
       });
     })();

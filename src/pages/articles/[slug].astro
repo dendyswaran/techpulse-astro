@@ -3,21 +3,30 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 
+const SITE = 'https://www.techpulsenews.tech';
+
 export async function getStaticPaths() {
-  const articles = await getCollection('articles');
-  return articles.map((article) => ({
+  const articles = (await getCollection('articles')).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  );
+  return articles.map((article, idx) => ({
     params: { slug: article.slug },
-    props: { article },
+    props: {
+      article,
+      newerArticle: idx > 0 ? articles[idx - 1] : null,
+      olderArticle: idx < articles.length - 1 ? articles[idx + 1] : null,
+    },
   }));
 }
 
-const { article } = Astro.props;
+const { article, newerArticle, olderArticle } = Astro.props;
 const { Content } = await article.render();
 
 const {
   title,
   subtitle,
   pubDate,
+  updatedDate,
   category,
   tags,
   readingTime,
@@ -41,6 +50,13 @@ const categoryLabel: Record<string, string> = {
   'tech-news': 'Industry',
 };
 
+const categoryFullTitle: Record<string, string> = {
+  ai: 'Artificial Intelligence',
+  security: 'Security & Advisories',
+  'tech-update': 'Systems & Runtimes',
+  'tech-news': 'Industry & Infrastructure',
+};
+
 const formattedDate = pubDate.toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',
@@ -54,36 +70,155 @@ const allArticles = (await getCollection('articles'))
 const relatedArticles = allArticles
   .filter((a) => a.data.category === category)
   .slice(0, 3);
+
+const canonicalArticleUrl = `${SITE}/articles/${article.slug}`;
+const absCoverUrl = coverImage
+  ? `${SITE}${coverImage}`
+  : `${SITE}/images/covers/openai-gpt-6-1-terra-mirendil-fern-10m-context.webp`;
+
+const rawBody = article.body || '';
+const wordCount = rawBody
+  .replace(/```[\s\S]*?```/g, ' ')
+  .replace(/[#>*_`~\[\]()|-]/g, ' ')
+  .split(/\s+/)
+  .filter(Boolean).length;
+
+const allKeywords = Array.from(new Set([...(tags || []), ...(cveIds || [])]));
+
+const newsArticleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'NewsArticle',
+  '@id': `${canonicalArticleUrl}#article`,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': canonicalArticleUrl,
+  },
+  headline: title,
+  alternativeHeadline: subtitle,
+  description: subtitle,
+  image: [
+    {
+      '@type': 'ImageObject',
+      url: absCoverUrl,
+      width: 1200,
+      height: 675,
+      caption: coverCaption || coverAlt || title,
+    },
+  ],
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate || pubDate).toISOString(),
+  author: [
+    {
+      '@type': 'Person',
+      name: author.name,
+      jobTitle: author.role,
+      url: `${SITE}/`,
+    },
+  ],
+  publisher: {
+    '@id': `${SITE}/#organization`,
+  },
+  isPartOf: {
+    '@id': `${SITE}/#website`,
+  },
+  articleSection: categoryFullTitle[category] || categoryLabel[category] || category,
+  keywords: allKeywords.join(', '),
+  wordCount,
+  inLanguage: 'en-US',
+  isAccessibleForFree: true,
+  ...(sources && sources.length > 0
+    ? {
+        citation: sources.map((s) => ({
+          '@type': 'CreativeWork',
+          name: s.label,
+          url: s.url,
+        })),
+      }
+    : {}),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${SITE}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: categoryFullTitle[category] || categoryLabel[category] || category,
+      item: `${SITE}/category/${category}`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: title,
+      item: canonicalArticleUrl,
+    },
+  ],
+};
 ---
 
 <BaseLayout
   title={`${title} — TechPulse`}
   description={subtitle}
   activeNav={category}
+  canonicalPath={`/articles/${article.slug}`}
+  ogType="article"
   ogImage={coverImage}
+  ogImageAlt={coverAlt || title}
+  preloadImage={coverImage}
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={(updatedDate || pubDate).toISOString()}
+  authorName={author.name}
+  section={categoryFullTitle[category] || categoryLabel[category] || category}
+  tags={allKeywords}
+  jsonLd={[newsArticleSchema, breadcrumbSchema]}
 >
   <div class="progress-bar" id="reading-progress-bar"></div>
 
-  <article class="container-reading">
+  <article class="container-reading" itemscope itemtype="https://schema.org/NewsArticle">
     <header class="article-header">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li>
+            <a href="/">Home</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <a href={`/category/${category}`}>
+              {categoryLabel[category] || category}
+            </a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <span class="breadcrumb-current" aria-current="page">{title}</span>
+          </li>
+        </ol>
+      </nav>
+
       <div class="article-kicker">
         <a href={`/category/${category}`}>
           {categoryLabel[category] || category}
         </a>
         <span>·</span>
-        <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+        <time datetime={pubDate.toISOString()} itemprop="datePublished">{formattedDate}</time>
         <span>·</span>
         <span>{readingTime}</span>
       </div>
 
-      <h1 class="article-headline">{title}</h1>
-      <p class="article-deck">{subtitle}</p>
+      <h1 class="article-headline" itemprop="headline">{title}</h1>
+      <p class="article-deck" itemprop="description">{subtitle}</p>
 
       <div class="article-byline-bar">
-        <div class="byline-author-block">
-          <span class="byline-author-name">{author.name}</span>
+        <div class="byline-author-block" itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <span class="byline-author-name" itemprop="name">{author.name}</span>
           <span class="byline-author-role">
-            {author.role} · {readingTime}
+            <span itemprop="jobTitle">{author.role}</span> · {readingTime}
           </span>
         </div>
 
@@ -133,8 +268,10 @@ const relatedArticles = allArticles
             width="1200"
             height="675"
             loading="eager"
+            fetchpriority="high"
             decoding="async"
             class="article-cover-img"
+            itemprop="image"
           />
           {coverCaption && (
             <figcaption class="article-cover-caption">{coverCaption}</figcaption>
@@ -186,7 +323,7 @@ const relatedArticles = allArticles
     )}
 
     <!-- Main Essay Body (Medium 20px Serif, 1.8 line-height, 680px measure) -->
-    <div class="prose-editorial">
+    <div class="prose-editorial" itemprop="articleBody">
       <Content />
     </div>
 
@@ -220,9 +357,31 @@ const relatedArticles = allArticles
       </section>
     )}
 
+    <!-- Previous / Next Dispatch Internal Linking -->
+    {(olderArticle || newerArticle) && (
+      <nav class="article-prev-next" aria-label="Adjacent dispatches">
+        <div>
+          {olderArticle && (
+            <a href={`/articles/${olderArticle.slug}`} class="prev-next-card prev-card">
+              <span class="prev-next-label">← Previous Dispatch</span>
+              <span class="prev-next-title">{olderArticle.data.title}</span>
+            </a>
+          )}
+        </div>
+        <div>
+          {newerArticle && (
+            <a href={`/articles/${newerArticle.slug}`} class="prev-next-card next-card">
+              <span class="prev-next-label">Next Dispatch →</span>
+              <span class="prev-next-title">{newerArticle.data.title}</span>
+            </a>
+          )}
+        </div>
+      </nav>
+    )}
+
     <!-- Further Reading -->
     {relatedArticles.length > 0 && (
-      <section style="margin-top:56px; padding-top:32px; border-top:1px solid var(--hairline);">
+      <section style="margin-top:48px; padding-top:32px; border-top:1px solid var(--hairline);">
         <h2 class="sources-heading" style="margin-bottom:4px;">
           More in {categoryLabel[category] || category}
         </h2>
@@ -235,9 +394,11 @@ const relatedArticles = allArticles
     )}
   </article>
 
-  <script is:inline>
+  <script is:inline define:vars={{ slug: article.slug, category }}>
     (function () {
       var bar = document.getElementById('reading-progress-bar');
+      var milestones = { 25: false, 50: false, 75: false, 100: false };
+
       window.addEventListener(
         'scroll',
         function () {
@@ -246,7 +407,21 @@ const relatedArticles = allArticles
             document.documentElement.scrollHeight -
             document.documentElement.clientHeight;
           var pct = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
-          bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+          var clamped = Math.min(100, Math.max(0, pct));
+          bar.style.width = clamped + '%';
+
+          [25, 50, 75, 100].forEach(function (m) {
+            if (!milestones[m] && clamped >= m - 2) {
+              milestones[m] = true;
+              if (window.tpTrack) {
+                window.tpTrack('article_read_depth', {
+                  article_slug: slug,
+                  category: category,
+                  percent_scrolled: m,
+                });
+              }
+            }
+          });
         },
         { passive: true }
       );
@@ -277,9 +452,23 @@ const relatedArticles = allArticles
             setTimeout(function () {
               copyBtn.innerHTML = orig;
             }, 1400);
+            if (window.tpTrack) {
+              window.tpTrack('article_share_copy', { article_slug: slug });
+            }
           }
         });
       }
+
+      document.querySelectorAll('.source-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (window.tpTrack) {
+            window.tpTrack('outbound_source_click', {
+              article_slug: slug,
+              destination_url: link.getAttribute('href') || '',
+            });
+          }
+        });
+      });
     })();
   </script>
 </BaseLayout>

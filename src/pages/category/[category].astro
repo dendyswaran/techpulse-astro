@@ -3,27 +3,33 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 
+const SITE = 'https://www.techpulsenews.tech';
+
 export async function getStaticPaths() {
   const categories = [
     {
       slug: 'ai',
       title: 'Artificial Intelligence',
-      desc: 'Foundation models, agentic architectures, inference economics, and automated vulnerability discovery.',
+      seoTitle: 'Artificial Intelligence (AI) Models, Agents & Benchmarks — TechPulse',
+      desc: 'In-depth engineering analysis of frontier foundation models, proactive AI agent architectures, inference economics, and automated vulnerability discovery.',
     },
     {
       slug: 'security',
       title: 'Security & Advisories',
-      desc: 'In-depth technical analysis of zero-day exploits, CVE disclosures, cryptographic flaws, and runtime patches.',
+      seoTitle: 'Security Advisories, Zero-Day Exploits & CVE Analysis — TechPulse',
+      desc: 'Technical post-mortems of zero-day exploits, CVE disclosures, cryptographic flaws, and emergency runtime patches across Node.js, Bun, PHP, Java, and AI infrastructure.',
     },
     {
       slug: 'tech-update',
       title: 'Systems & Runtimes',
-      desc: 'Release notes, compiler improvements, and architectural changes across Node.js, Bun, Astro, and modern web toolchains.',
+      seoTitle: 'Systems & Runtimes: Node.js, Bun & Astro Engineering Updates — TechPulse',
+      desc: 'Release notes, compiler optimizations, HTTP/3 and TLS internals, and architectural shifts across Node.js, Bun, Astro, and modern web toolchains.',
     },
     {
       slug: 'tech-news',
       title: 'Industry & Infrastructure',
-      desc: 'Semiconductor supply chains, open-source governance, cloud infrastructure shifts, and engineering policy.',
+      seoTitle: 'Enterprise AI Deployment, Governance & Cloud Infrastructure — TechPulse',
+      desc: 'Production AI agent rollouts across federal agencies and retail, autonomous safety evaluations, UK AISI & FTC oversight, and cloud infrastructure policy.',
     },
   ];
 
@@ -34,6 +40,7 @@ export async function getStaticPaths() {
     props: {
       categorySlug: cat.slug,
       categoryTitle: cat.title,
+      categorySeoTitle: cat.seoTitle,
       categoryDesc: cat.desc,
       articles: allArticles
         .filter((a) => a.data.category === cat.slug)
@@ -42,21 +49,81 @@ export async function getStaticPaths() {
   }));
 }
 
-const { categorySlug, categoryTitle, categoryDesc, articles } = Astro.props;
+const {
+  categorySlug,
+  categoryTitle,
+  categorySeoTitle,
+  categoryDesc,
+  articles,
+} = Astro.props;
+
+const canonicalCategoryUrl = `${SITE}/category/${categorySlug}`;
+
+const collectionPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${canonicalCategoryUrl}#collection`,
+  name: categorySeoTitle,
+  description: categoryDesc,
+  url: canonicalCategoryUrl,
+  isPartOf: { '@id': `${SITE}/#website` },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListOrder: 'https://schema.org/ItemListOrderDescending',
+    numberOfItems: articles.length,
+    itemListElement: articles.map((entry, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      url: `${SITE}/articles/${entry.slug}`,
+      name: entry.data.title,
+    })),
+  },
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${SITE}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: categoryTitle,
+      item: canonicalCategoryUrl,
+    },
+  ],
+};
 ---
 
 <BaseLayout
-  title={`${categoryTitle} — TechPulse`}
+  title={categorySeoTitle}
   description={categoryDesc}
   activeNav={categorySlug}
+  canonicalPath={`/category/${categorySlug}`}
+  ogImage={articles[0]?.data.coverImage}
+  ogImageAlt={articles[0]?.data.coverAlt || categoryTitle}
+  preloadImage={articles[0]?.data.coverImage}
+  jsonLd={[collectionPageSchema, breadcrumbSchema]}
 >
   <div class="container-reading" style="padding-top:44px; padding-bottom:64px;">
     <header style="padding-bottom:28px; border-bottom:1px solid var(--hairline);">
-      <div class="article-kicker" style="margin-bottom:8px;">
-        <a href="/">All Stories</a>
-        <span>/</span>
-        <span>Section</span>
-      </div>
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li>
+            <a href="/">Home</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <span class="breadcrumb-current" aria-current="page">{categoryTitle}</span>
+          </li>
+        </ol>
+      </nav>
+
       <h1
         class="font-serif"
         style="font-size:clamp(2rem, 3.5vw, 2.4rem); font-weight:600; letter-spacing:-0.025em; margin:0 0 10px 0;"
@@ -69,8 +136,8 @@ const { categorySlug, categoryTitle, categoryDesc, articles } = Astro.props;
     </header>
 
     <div>
-      {articles.map((article) => (
-        <ArticleCard article={article} />
+      {articles.map((article, index) => (
+        <ArticleCard article={article} lead={index === 0} />
       ))}
     </div>
   </div>
