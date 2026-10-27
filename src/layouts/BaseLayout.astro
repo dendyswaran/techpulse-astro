@@ -7,21 +7,101 @@ interface Props {
   description?: string;
   activeNav?: string;
   ogImage?: string;
+  ogImageAlt?: string;
+  ogType?: 'website' | 'article';
+  preloadImage?: string;
+  canonicalPath?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  authorName?: string;
+  section?: string;
+  tags?: string[];
+  jsonLd?: Record<string, any> | Record<string, any>[];
 }
 
 const {
-  title = 'TechPulse',
-  description = 'Independent reporting on software systems, foundation models, and runtime security advisories.',
+  title = 'TechPulse — Systems, AI & Security Advisories',
+  description = 'Independent engineering reporting on software systems, foundation models, and runtime security advisories across Node.js, Bun, PHP, Java SE, and AI infrastructure.',
   activeNav = 'home',
-  ogImage,
+  ogImage = '/images/covers/openai-gpt-6-1-terra-mirendil-fern-10m-context.webp',
+  ogImageAlt = 'TechPulse editorial illustration',
+  ogType = 'website',
+  preloadImage,
+  canonicalPath,
+  publishedTime,
+  modifiedTime,
+  authorName = 'Mazzden',
+  section,
+  tags = [],
+  jsonLd,
 } = Astro.props;
 
-const siteOrigin = Astro.site ? Astro.site.toString().replace(/\/$/, '') : 'https://techpulsenews.tech';
+const siteOrigin = 'https://www.techpulsenews.tech';
+const rawPath = canonicalPath ?? Astro.url.pathname;
+const normalizedPath =
+  rawPath === '/' ? '/' : rawPath.replace(/\/+$/, '');
+const canonicalURL = `${siteOrigin}${normalizedPath}`;
+
 const resolvedOgImage = ogImage
   ? ogImage.startsWith('http')
     ? ogImage
     : `${siteOrigin}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`
-  : undefined;
+  : `${siteOrigin}/images/covers/openai-gpt-6-1-terra-mirendil-fern-10m-context.webp`;
+
+const gaId =
+  import.meta.env.PUBLIC_GA_MEASUREMENT_ID ||
+  import.meta.env.PUBLIC_GA_ID ||
+  '';
+
+const googleFontsUrl =
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Plus+Jakarta+Sans:wght@600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap';
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'NewsMediaOrganization',
+  '@id': `${siteOrigin}/#organization`,
+  name: 'TechPulse',
+  url: `${siteOrigin}/`,
+  logo: {
+    '@type': 'ImageObject',
+    url: `${siteOrigin}/favicon.svg`,
+    width: 512,
+    height: 512,
+  },
+  description:
+    'Independent engineering publication covering software systems, frontier AI models, and runtime security advisories (CVEs).',
+  publishingPrinciples: `${siteOrigin}/security`,
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${siteOrigin}/#website`,
+  url: `${siteOrigin}/`,
+  name: 'TechPulse',
+  description:
+    'Systems, AI & Security Advisories — Independent reporting on software runtimes, foundation models, and CVE disclosures.',
+  publisher: {
+    '@id': `${siteOrigin}/#organization`,
+  },
+  inLanguage: 'en-US',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${siteOrigin}/?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+const extraSchemas = Array.isArray(jsonLd)
+  ? jsonLd
+  : jsonLd
+    ? [jsonLd]
+    : [];
+
+const allSchemas = [organizationSchema, websiteSchema, ...extraSchemas];
 
 const allArticles = await getCollection('articles');
 const searchIndex = allArticles
@@ -47,13 +127,145 @@ const searchIndex = allArticles
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={authorName} />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta
+      name="googlebot"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Sitemap, RSS & Web Manifest Discovery -->
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="TechPulse — Systems, AI & Security Advisories RSS Feed"
+      href={`${siteOrigin}/rss.xml`}
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#FFFFFF" />
+
+    <!-- Core Web Vitals: Preconnect & Non-Render-Blocking Font Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {gaId && <link rel="preconnect" href="https://www.googletagmanager.com" />}
+    <link rel="preload" as="style" href={googleFontsUrl} />
+    <link
+      rel="stylesheet"
+      href={googleFontsUrl}
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href={googleFontsUrl} />
+    </noscript>
+
+    <!-- Core Web Vitals: Preload LCP Hero / Lead Image -->
+    {preloadImage && (
+      <link
+        rel="preload"
+        as="image"
+        href={preloadImage}
+        type="image/webp"
+        fetchpriority="high"
+      />
+    )}
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:site_name" content="TechPulse" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="article" />
-    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
-    <meta name="twitter:card" content={resolvedOgImage ? 'summary_large_image' : 'summary'} />
-    {resolvedOgImage && <meta name="twitter:image" content={resolvedOgImage} />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={resolvedOgImage} />
+    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="675" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    {ogType === 'article' && publishedTime && (
+      <meta property="article:published_time" content={publishedTime} />
+    )}
+    {ogType === 'article' && modifiedTime && (
+      <meta property="article:modified_time" content={modifiedTime} />
+    )}
+    {ogType === 'article' && authorName && (
+      <meta property="article:author" content={authorName} />
+    )}
+    {ogType === 'article' && section && (
+      <meta property="article:section" content={section} />
+    )}
+    {ogType === 'article' &&
+      tags.map((tag) => <meta property="article:tag" content={tag} />)}
+
+    <!-- Twitter / X Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={resolvedOgImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    <!-- Rich JSON-LD Structured Data (Schema.org) -->
+    {allSchemas.map((schemaObj) => (
+      <script
+        type="application/ld+json"
+        set:html={JSON.stringify(schemaObj)}
+      />
+    ))}
+
+    <!-- Google Analytics 4 (GA4 / gtag.js) -->
+    <meta name="ga-measurement-id" content={gaId} />
+    {gaId && (
+      <script
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+      ></script>
+    )}
+    <script is:inline define:vars={{ gaId }}>
+      (function () {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          window.dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+
+        var activeGaId = gaId;
+        try {
+          if (!activeGaId) {
+            activeGaId = localStorage.getItem('techpulse-ga-id') || '';
+          }
+        } catch (e) {}
+
+        if (activeGaId) {
+          if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
+            var s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(activeGaId);
+            document.head.appendChild(s);
+          }
+          gtag('js', new Date());
+          gtag('config', activeGaId, {
+            page_path: window.location.pathname,
+            page_title: document.title,
+            anonymize_ip: true,
+          });
+        }
+
+        window.tpTrack = function (eventName, params) {
+          if (typeof window.gtag === 'function' && activeGaId) {
+            window.gtag('event', eventName, params || {});
+          }
+        };
+      })();
+    </script>
+
+    <!-- Instant Theme & Reading Font Size Restoration -->
     <script is:inline>
       (function () {
         try {
@@ -72,7 +284,7 @@ const searchIndex = allArticles
       <div class="header-inner">
         <a href="/" class="brand-wordmark" aria-label="TechPulse Home">TechPulse</a>
 
-        <div class="header-utilities">
+        <nav class="header-utilities" aria-label="Primary Utilities">
           <button type="button" class="util-btn" id="open-search-btn" aria-label="Search">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
               <circle cx="11" cy="11" r="7.5"></circle>
@@ -92,7 +304,7 @@ const searchIndex = allArticles
             </svg>
             <span id="theme-label">Paper</span>
           </button>
-        </div>
+        </nav>
       </div>
     </header>
 
@@ -127,14 +339,16 @@ const searchIndex = allArticles
           <span class="font-serif" style="font-weight:600; color:var(--ink);">TechPulse</span>
           <span style="margin-left:10px;">Systems, AI &amp; Security Advisories</span>
         </div>
-        <div style="display:flex; gap:20px; flex-wrap:wrap;">
+        <nav aria-label="Footer Navigation" style="display:flex; gap:20px; flex-wrap:wrap;">
           <a href="/" class="util-link">Archive</a>
           <a href="/category/ai" class="util-link">AI</a>
           <a href="/category/security" class="util-link">Security</a>
           <a href="/category/tech-update" class="util-link">Systems</a>
           <a href="/category/tech-news" class="util-link">Industry</a>
           <a href="/security" class="util-link">CVE Index</a>
-        </div>
+          <a href="/rss.xml" class="util-link">RSS</a>
+          <a href="/sitemap.xml" class="util-link">Sitemap</a>
+        </nav>
       </div>
     </footer>
 
@@ -160,6 +374,7 @@ const searchIndex = allArticles
               localStorage.setItem('techpulse-theme', next);
             } catch (e) {}
             syncThemeLabel();
+            if (window.tpTrack) window.tpTrack('theme_switch', { theme: next });
           });
         }
 
@@ -233,6 +448,7 @@ const searchIndex = allArticles
           setTimeout(function () {
             if (input) input.focus();
           }, 30);
+          if (window.tpTrack) window.tpTrack('search_open');
         }
 
         function closeSearch() {
@@ -247,11 +463,29 @@ const searchIndex = allArticles
             if (e.target === backdrop) closeSearch();
           });
         }
+        var searchTimer;
         if (input) {
           input.addEventListener('input', function () {
             renderSearchResults(input.value);
+            clearTimeout(searchTimer);
+            var val = (input.value || '').trim();
+            if (val.length >= 2) {
+              searchTimer = setTimeout(function () {
+                if (window.tpTrack) window.tpTrack('search', { search_term: val });
+              }, 600);
+            }
           });
         }
+
+        // Support ?q= query parameter from Schema.org SearchAction
+        try {
+          var urlParams = new URLSearchParams(window.location.search);
+          var qParam = urlParams.get('q');
+          if (qParam && input && backdrop) {
+            input.value = qParam;
+            openSearch();
+          }
+        } catch (e) {}
 
         document.addEventListener('keydown', function (e) {
           if (e.key === '/' && document.activeElement !== input && !['INPUT', 'TEXTAREA'].includes((document.activeElement || {}).tagName)) {
@@ -327,13 +561,18 @@ const searchIndex = allArticles
           var slug = btn.getAttribute('data-bookmark-slug');
           var slugs = getBookmarks();
           var idx = slugs.indexOf(slug);
+          var action = 'remove';
           if (idx === -1) {
             slugs.push(slug);
+            action = 'save';
           } else {
             slugs.splice(idx, 1);
           }
           saveBookmarks(slugs);
           syncBookmarkButtons();
+          if (window.tpTrack) {
+            window.tpTrack('bookmark_toggle', { article_slug: slug, action: action });
+          }
         });
 
         syncBookmarkButtons();

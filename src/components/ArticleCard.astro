@@ -51,6 +51,7 @@ const primaryCve = cveIds && cveIds.length > 0 ? cveIds[0] : null;
         width="1200"
         height="675"
         loading={lead ? 'eager' : 'lazy'}
+        fetchpriority={lead ? 'high' : undefined}
         decoding="async"
         class="story-lead-cover-img"
       />
