@@ -17,6 +17,9 @@ tldr:
 sources:
   - label: "GitHub — withastro/astro Official Release Notes (astro@7.4.2)"
     url: "https://github.com/withastro/astro/releases"
+coverImage: "/images/covers/rilis-astro-7-4-2-optimasi-content-layer-dan-keamanan-node.webp"
+coverAlt: "Editorial illustration of a brass astronomical astrolabe and layered index cards along orbital arcs"
+coverCaption: "Illustration by TechPulse Editorial · Astro 7.4.2 accelerates large-scale Content Layer synchronization while enforcing patched Node.js baselines."
 ---
 
 For web engineering teams building large documentation portals, media publications, and content-heavy platforms with **Astro**, the release of **`astro@7.4.2`** and **`create-astro@5.3.1`** on **October 21, 2026** delivers substantial gains in both build performance and runtime security posture.
