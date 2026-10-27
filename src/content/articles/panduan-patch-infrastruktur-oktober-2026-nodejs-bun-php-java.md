@@ -19,6 +19,9 @@ sources:
     url: "https://nodejs.org/en/blog/vulnerability/october-2026-security-releases"
   - label: "Bun v1.4.4 Security Release Notes"
     url: "https://bun.com/blog/bun-v1.4.4"
+coverImage: "/images/covers/panduan-patch-infrastruktur-oktober-2026-nodejs-bun-php-java.webp"
+coverAlt: "Editorial illustration of four interlocking masonry foundation blocks aligned by a brass plumb bob"
+coverCaption: "Illustration by TechPulse Editorial · Coordinating multi-runtime remediation across Node.js, Bun, PHP, and Java SE."
 ---
 
 It is rare for four foundational server runtimes—**Node.js, Bun, PHP, and Java**—to ship High and Critical security advisories within the exact same week. Yet that is precisely what unfolded during the fourth week of **October 2026**.

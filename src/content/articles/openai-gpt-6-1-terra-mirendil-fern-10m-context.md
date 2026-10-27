@@ -22,6 +22,9 @@ sources:
     url: "https://aws.amazon.com/about-aws/whats-new/2026/10/openai-gpt-6-1-terra-on-amazon-bedrock/"
   - label: "Mirendil — Introducing Fern"
     url: "https://mirendil.com/news/introducing-fern/"
+coverImage: "/images/covers/openai-gpt-6-1-terra-mirendil-fern-10m-context.webp"
+coverAlt: "Editorial illustration of a botanical fern frond beside a relief terracotta sphere and unrolled paper scroll"
+coverCaption: "Illustration by TechPulse Editorial · Frontier inference economics meet ultra-long-horizon context architectures."
 ---
 
 October 26, 2026 brought two very different model launches. OpenAI pushed the price-performance curve with **GPT-6.1 Terra**, a workhorse model built for the computer-based tasks that fill a normal workday. Meanwhile a new lab, **Mirendil**, came out of stealth with **Fern**, a model whose defining trait is a context window of up to 10 million tokens.
