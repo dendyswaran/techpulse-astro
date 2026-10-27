@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://techpulse-astro.vercel.app',
+  site: 'https://techpulsenews.tech',
   markdown: {
     shikiConfig: {
       themes: {
