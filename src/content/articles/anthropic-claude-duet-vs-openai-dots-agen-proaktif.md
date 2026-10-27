@@ -19,6 +19,9 @@ sources:
     url: "https://aimap.page/en/news/weekly/2026-w43/"
   - label: "MarketingProfs AI Update — October 2026 Industry Analysis"
     url: "https://www.marketingprofs.com/opinions/2026/56056/ai-update-october-02-2026-ai-news-and-views-from-the-past-week"
+coverImage: "/images/covers/anthropic-claude-duet-vs-openai-dots-agen-proaktif.webp"
+coverAlt: "Editorial illustration of two acoustic tuning forks and a brass metronome on a sunlit wooden desk"
+coverCaption: "Illustration by TechPulse Editorial · From passive prompt-response loops to continuously orchestrated desktop and enterprise agents."
 ---
 
 For the past three years, human interaction with artificial intelligence was defined by a **reactive** loop: a user typed a prompt into a text box, and the model replied. In October 2026, the AI product landscape underwent a decisive architectural shift toward **always-on proactive agents**.

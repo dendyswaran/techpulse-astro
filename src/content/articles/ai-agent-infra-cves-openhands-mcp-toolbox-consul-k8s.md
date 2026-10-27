@@ -32,6 +32,9 @@ sources:
     url: "https://discuss.hashicorp.com/t/hcsec-2026-50-consul-k8s-vulnerable-to-a-cross-namespace-authorization-bypass-in-component-acl-binding-rules/77915"
   - label: "CVE Record — CVE-2026-110720"
     url: "https://www.cve.org/CVERecord?id=CVE-2026-110720"
+coverImage: "/images/covers/ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s.webp"
+coverAlt: "Editorial illustration of three interlocking architectural courtyards with an open gate on warm paper"
+coverCaption: "Illustration by TechPulse Editorial · Default-open boundaries across agent sandboxes, MCP servers, and service meshes."
 ---
 
 NVD published 759 CVEs on October 26, 2026, and most of them won't matter to a typical engineering team. Three do. They sit in the layer that's grown fastest this year, the tooling that runs AI agents and the cloud plumbing underneath it, and all three come down to the same root cause: a default that trusts anyone who can reach the network.

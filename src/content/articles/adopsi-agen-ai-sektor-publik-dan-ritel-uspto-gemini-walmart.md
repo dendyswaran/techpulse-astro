@@ -17,6 +17,9 @@ tldr:
 sources:
   - label: "AI Week in Review (Oct 25, 2026) — Public Sector & Retail AI Agent Rollouts"
     url: "https://ai-week-in-review.beehiiv.com/p/ai-week-in-review-10-25-26"
+coverImage: "/images/covers/adopsi-agen-ai-sektor-publik-dan-ritel-uspto-gemini-walmart.webp"
+coverAlt: "Editorial illustration of classical civic arches and balanced geometric blocks on textured cream paper"
+coverCaption: "Illustration by TechPulse Editorial · Public institutions and global retail chains move autonomous workflows into regulated production."
 ---
 
 If 2024 and 2025 were defined by generative AI proofs-of-concept, **October 2026** will be remembered as the inflection point when **bounded, production-grade AI agents** moved into the core of federal government operations and mass-market retail commerce.
