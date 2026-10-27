@@ -26,6 +26,9 @@ sources:
     url: "https://github.com/oven-sh/bun/security/advisories/GHSA-cf8x-9m69-3gg3"
   - label: "GitHub Security Advisory GHSA-26q8-h657-pf84 (eMudhra CA Removal)"
     url: "https://github.com/oven-sh/bun/security/advisories/GHSA-26q8-h657-pf84"
+coverImage: "/images/covers/bun-v1-4-4-http3-qpack-brotli-emudhra-security.webp"
+coverAlt: "Editorial illustration of a folded paper accordion book beside a ceramic teacup on a wooden table"
+coverCaption: "Illustration by TechPulse Editorial · Mitigating QPACK header amplification and root store trust shifts in Bun v1.4.4."
 ---
 
 One day after the October 2026 Node.js security bulletin, the **Bun** team shipped **Bun v1.4.4**, patching three high-impact vulnerabilities affecting `Bun.serve()`, data decompression APIs, and outbound TLS certificate validation.

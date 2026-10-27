@@ -19,6 +19,9 @@ sources:
     url: "https://aimap.page/en/news/weekly/2026-w43/"
   - label: "Calathea AI Reads Archive — October 2026 Open-Weight Developments"
     url: "https://calathea.ai/reads/archive/2026/10/"
+coverImage: "/images/covers/moonshot-kimi-k3-1-pro-open-weight-3-triliun-parameter.webp"
+coverAlt: "Editorial illustration of a waxing crescent moon reflected in a tranquil courtyard pool with three stone monoliths"
+coverCaption: "Illustration by TechPulse Editorial · Moonshot AI narrows the frontier gap with its 3-trillion-parameter sparse MoE architecture."
 ---
 
 Competition among frontier foundation models intensified in late October 2026 with the release of **Kimi K3.1 Pro** from **Moonshot AI**. While open-weight models were historically perceived as trailing proprietary labs by a generation in autonomous software engineering and command-line execution, Kimi K3.1 Pro's benchmark performance challenges that assumption directly.
