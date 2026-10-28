@@ -1,0 +1,340 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getMergedCveRecords, type CveRecord } from '../../data/cves';
+
+const SITE = 'https://www.techpulsenews.tech';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles');
+  const records = getMergedCveRecords(articles);
+  const articleMap = new Map(articles.map((a) => [a.slug, a]));
+
+  return records.map((cve) => ({
+    params: { id: cve.slugId },
+    props: {
+      cve,
+      linkedArticle: articleMap.get(cve.articleSlug) || null,
+      relatedCves: records.filter((r) => r.slugId !== cve.slugId).slice(0, 6),
+    },
+  }));
+}
+
+interface Props {
+  cve: CveRecord;
+  linkedArticle: any;
+  relatedCves: CveRecord[];
+}
+
+const { cve, linkedArticle, relatedCves } = Astro.props;
+
+const canonicalPath = `/cve/${cve.slugId}`;
+const canonicalUrl = `${SITE}${canonicalPath}`;
+const coverImage =
+  linkedArticle?.data?.coverImage ||
+  '/images/covers/nodejs-october-2026-brotli-rce-cve-2026-111497.webp';
+const coverAlt =
+  linkedArticle?.data?.coverAlt || `${cve.id} — ${cve.component} Technical Advisory`;
+
+const pageTitle = `${cve.id}: ${cve.component} (${cve.severity} CVSS ${cve.cvss}) — Patch & Affected Versions | TechPulse`;
+const pageDesc = `${cve.id} (${cve.severity}, CVSS ${cve.cvss}) in ${cve.product}: ${cve.summary} Affected versions: ${cve.affected}. Patched in: ${cve.patched}.`;
+
+const techArticleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  '@id': `${canonicalUrl}#techarticle`,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': canonicalUrl,
+  },
+  headline: `${cve.id}: ${cve.component} — Affected Versions, CVSS ${cve.cvss} & Remediation`,
+  description: pageDesc,
+  proficiencyLevel: 'Expert',
+  datePublished: `${cve.publishedDate}T00:00:00.000Z`,
+  dateModified: `${cve.publishedDate}T00:00:00.000Z`,
+  author: {
+    '@type': 'Person',
+    name: 'Mazzden',
+    jobTitle: 'Editor-in-Chief, TechPulse',
+    url: `${SITE}/`,
+  },
+  publisher: {
+    '@id': `${SITE}/#organization`,
+  },
+  image: `${SITE}${coverImage}`,
+  keywords: [
+    cve.id,
+    `${cve.id} patch`,
+    `${cve.id} affected versions`,
+    `${cve.id} remediation`,
+    cve.vendor,
+    cve.product,
+    cve.cwe,
+  ].join(', '),
+  about: {
+    '@type': 'SoftwareApplication',
+    name: cve.product,
+    applicationCategory: 'DeveloperApplication',
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${canonicalUrl}#faq`,
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: `What versions are affected by ${cve.id}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `${cve.id} affects ${cve.affected} in ${cve.product} (${cve.component}).`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `How do I patch or remediate ${cve.id}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `To remediate ${cve.id}, upgrade to the patched release: ${cve.patched}. ${cve.remediationSteps.join(' ')}`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `What is the CVSS score and severity of ${cve.id}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `${cve.id} is rated ${cve.severity} with a CVSS score of ${cve.cvss} (${cve.vector}) and is classified under ${cve.cwe}.`,
+      },
+    },
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${SITE}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Security & CVE Index',
+      item: `${SITE}/security`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: cve.id,
+      item: canonicalUrl,
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDesc}
+  activeNav="cve-matrix"
+  canonicalPath={canonicalPath}
+  ogType="article"
+  ogImage={coverImage}
+  ogImageAlt={coverAlt}
+  publishedTime={`${cve.publishedDate}T00:00:00.000Z`}
+  modifiedTime={`${cve.publishedDate}T00:00:00.000Z`}
+  section="Security & CVE Advisories"
+  tags={[cve.id, cve.vendor, cve.product, cve.severity]}
+  jsonLd={[techArticleSchema, faqSchema, breadcrumbSchema]}
+>
+  <article class="container-reading">
+    <header class="article-header">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li>
+            <a href="/">Home</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <a href="/security">Security &amp; CVE Index</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <span class="breadcrumb-current font-mono" aria-current="page">{cve.id}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="cve-meta-header-row">
+        <span class="cve-id-badge font-mono">{cve.id}</span>
+        <span class={`cve-sev-badge font-mono severity-${cve.severity}`}>
+          {cve.severity} · CVSS {cve.cvss}
+        </span>
+        <span class="cve-meta-dot">·</span>
+        <span class="cve-vendor-label">{cve.vendor} — {cve.product}</span>
+        <span class="cve-meta-dot">·</span>
+        <time datetime={cve.publishedDate} class="font-mono">{cve.publishedDate}</time>
+      </div>
+
+      <h1 class="article-headline">
+        {cve.id}: {cve.component}
+      </h1>
+
+      <p class="article-deck">
+        {cve.summary}
+      </p>
+    </header>
+
+    <!-- Technical Specification Datasheet -->
+    <section class="spec-datasheet" aria-label="Technical Vulnerability Datasheet">
+      <div class="spec-row">
+        <div class="spec-key">Identifier</div>
+        <div class="spec-val font-mono" style="font-weight:600;">{cve.id}</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Vendor / Product</div>
+        <div class="spec-val">{cve.vendor} · {cve.product}</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Severity / CVSS</div>
+        <div class={`spec-val severity-${cve.severity}`} style="font-weight:600;">
+          {cve.severity} · CVSS {cve.cvss}
+        </div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Vector / CWE</div>
+        <div class="spec-val">
+          <div>{cve.cwe}</div>
+          <div style="color:var(--ink-muted); font-size:0.75rem; margin-top:2px;">{cve.vector}</div>
+        </div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Affected</div>
+        <div class="spec-val">{cve.affected}</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Patched Version</div>
+        <div class="spec-val" style="font-weight:500;">{cve.patched}</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Priority</div>
+        <div class="spec-val">{cve.priority}</div>
+      </div>
+    </section>
+
+    <!-- Executive Summary & Remediation Guidance -->
+    <section class="prose-editorial">
+      <h2>Executive Summary &amp; Technical Impact</h2>
+      <p>{cve.summary}</p>
+      <p>
+        Tracked under <strong>{cve.id}</strong> ({cve.cwe}), this vulnerability affects{' '}
+        <code>{cve.affected}</code> and carries a severity score of{' '}
+        <strong>{cve.cvss} ({cve.severity})</strong>. Engineering and security operations teams running{' '}
+        <strong>{cve.product}</strong> should prioritize upgrading to{' '}
+        <code>{cve.patched}</code>.
+      </p>
+
+      <h2>Remediation &amp; Patch Guidance</h2>
+      <ol>
+        {cve.remediationSteps.map((step) => (
+          <li>{step}</li>
+        ))}
+      </ol>
+
+      <h2>Frequently Asked Questions ({cve.id})</h2>
+      <h3>What versions are affected by {cve.id}?</h3>
+      <p>
+        {cve.id} affects <code>{cve.affected}</code> in {cve.product} ({cve.component}).
+      </p>
+
+      <h3>How do I patch or remediate {cve.id}?</h3>
+      <p>
+        Upgrade affected deployments to <code>{cve.patched}</code> and verify the remediation steps listed above.
+      </p>
+
+      <h3>What is the CVSS score of {cve.id}?</h3>
+      <p>
+        {cve.id} is rated <strong>{cve.severity}</strong> with a CVSS score of{' '}
+        <strong>{cve.cvss}</strong> (vector: <code>{cve.vector}</code>).
+      </p>
+    </section>
+
+    <!-- Linked TechPulse Deep-Dive Dispatch Card (With Cover Thumbnail) -->
+    {linkedArticle && (
+      <section class="cve-deepdive-box" aria-label="Full TechPulse Engineering Analysis">
+        <div class="editorial-brief-label">Full TechPulse Investigation</div>
+        <div class="story-row" style="align-items:center;">
+          <div class="story-main">
+            <a href={`/articles/${linkedArticle.slug}`} class="story-text-link">
+              <h3 class="story-title" style="font-size:1.28rem; margin-bottom:6px;">
+                {linkedArticle.data.title}
+              </h3>
+              <p class="story-subtitle" style="margin-bottom:10px;">
+                {linkedArticle.data.subtitle}
+              </p>
+            </a>
+            <a href={`/articles/${linkedArticle.slug}`} class="cve-read-link" style="font-weight:500; color:var(--ink);">
+              Read full engineering post-mortem ({linkedArticle.data.readingTime}) →
+            </a>
+          </div>
+          {linkedArticle.data.coverImage && (
+            <a href={`/articles/${linkedArticle.slug}`} class="story-thumb-link" style="margin-top:0;" aria-hidden="true" tabindex="-1">
+              <img
+                src={linkedArticle.data.coverImage}
+                alt={linkedArticle.data.coverAlt || linkedArticle.data.title}
+                width="320"
+                height="214"
+                loading="lazy"
+                decoding="async"
+                class="story-thumb-img"
+              />
+            </a>
+          )}
+        </div>
+      </section>
+    )}
+
+    <!-- Official Vendor & NVD References -->
+    {cve.references && cve.references.length > 0 && (
+      <section class="sources-block">
+        <h2 class="sources-heading">Official Vendor &amp; NVD Advisory Links</h2>
+        <ol class="sources-list">
+          {cve.references.map((ref) => (
+            <li>
+              <a
+                href={ref.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="source-link"
+              >
+                {ref.label}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
+
+    <!-- Other Active Advisories -->
+    <section class="related-section">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+        <h2 class="sources-heading" style="margin:0;">Other Active Runtime &amp; Infrastructure CVEs</h2>
+        <a href="/security" class="sidebar-heading-link">View All in CVE Index →</a>
+      </div>
+      <div class="advisory-ledger">
+        {relatedCves.map((item) => (
+          <a href={`/cve/${item.slugId}`} class="advisory-ledger-row">
+            <span class="ledger-id">{item.id}</span>
+            <span class="ledger-title">{item.component}</span>
+            <span class={`ledger-score severity-${item.severity}`}>
+              {item.severity} · {item.cvss}
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </article>
+</BaseLayout>

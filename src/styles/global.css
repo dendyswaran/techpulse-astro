@@ -1647,3 +1647,201 @@ time,
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================
+   PROGRAMMATIC CVE PAGES (/cve/[id]) & SHARE / SYNDICATION UI
+   ========================================================= */
+.cve-meta-header-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cve-id-badge {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 3px 9px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.cve-sev-badge {
+  background: var(--bg-pill);
+  padding: 3px 9px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cve-meta-dot {
+  color: var(--ink-muted);
+  user-select: none;
+}
+
+.cve-vendor-label {
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+
+.cve-deepdive-box {
+  margin: 40px 0;
+  padding: 22px 24px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--hairline-strong);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.spec-cve-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-muted);
+  font-weight: 500;
+  transition: text-decoration-color var(--dur-fast) var(--ease-out);
+}
+
+.spec-cve-link:hover {
+  text-decoration-color: var(--ink);
+}
+
+.kicker-cve-link {
+  text-decoration: none;
+}
+
+.kicker-cve-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Article Footer Share Bar */
+.article-share-bar {
+  margin-top: 36px;
+  padding: 16px 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.article-share-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-muted);
+}
+
+.article-share-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.share-pill-btn {
+  background: var(--bg-pill);
+  color: var(--ink);
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 36px;
+  padding: 6px 13px;
+  border-radius: 99px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.share-pill-btn:hover {
+  background: var(--bg-pill-hover);
+}
+
+/* Print-Styled RSS & CVE Syndication Callout Box */
+.syndication-box {
+  margin-top: 40px;
+  padding: 22px 24px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--hairline-strong);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.syndication-title {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 6px 0;
+}
+
+.syndication-desc {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-secondary);
+  margin: 0 0 16px 0;
+  max-width: 60ch;
+}
+
+.syndication-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.syndication-btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  min-height: 36px;
+  padding: 7px 15px;
+  border-radius: 4px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.syndication-btn-primary:hover {
+  opacity: 0.88;
+}
+
+.syndication-btn-secondary {
+  background: var(--bg-pill);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 4px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.syndication-btn-secondary:hover {
+  background: var(--bg-pill-hover);
+}

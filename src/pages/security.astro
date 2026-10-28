@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
+import { getMergedCveRecords } from '../data/cves';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -15,143 +16,7 @@ const securityArticles = allArticles.filter(
     (a.data.cveIds && a.data.cveIds.length > 0)
 );
 
-const cveRecords = [
-  {
-    id: 'CVE-2026-111497',
-    component: 'Node.js Brotli Stream Decoder',
-    severity: 'CRITICAL',
-    cvss: '9.8',
-    affected: '20.x, 22.x, 24.x, 25.x',
-    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
-    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
-  },
-  {
-    id: 'CVE-2026-112346',
-    component: 'OpenHands Agent Runtime Command Injection',
-    severity: 'CRITICAL',
-    cvss: '9.8',
-    affected: 'OpenHands < 0.34.2',
-    patched: 'OpenHands v0.34.2',
-    slug: 'ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s',
-  },
-  {
-    id: 'CVE-2026-97631',
-    component: 'TianoCore EDK II UEFI PXE Base Code Driver',
-    severity: 'CRITICAL',
-    cvss: '9.5',
-    affected: 'EDK II NetworkPkg/UefiPxeBcDxe (PXE enabled)',
-    patched: 'EDK II Upstream Fix / Vendor UEFI Updates',
-    slug: 'uefi-edk2-pxe-cve-2026-97631-boot-firmware',
-  },
-  {
-    id: 'CVE-2026-93328',
-    component: 'Google GenAI MCP Toolbox Credential Leak',
-    severity: 'CRITICAL',
-    cvss: '9.3',
-    affected: 'genai-toolbox < 0.8.4',
-    patched: 'genai-toolbox v0.8.4',
-    slug: 'ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s',
-  },
-  {
-    id: 'CVE-2026-109618',
-    component: 'PHP SAPI Multipart Parser (php2shell)',
-    severity: 'CRITICAL',
-    cvss: '9.2',
-    affected: '8.2.x < 8.2.28, 8.3.x < 8.3.19, 8.4.x < 8.4.6',
-    patched: 'PHP 8.2.28, 8.3.19, 8.4.6',
-    slug: 'php2shell-rce-cve-2026-109618-ditemukan-ai',
-  },
-  {
-    id: 'GHSA-cf8x-9m69',
-    component: 'Bun HTTP/3 QPACK Decoder',
-    severity: 'HIGH',
-    cvss: '9.2',
-    affected: 'Bun < v1.4.4',
-    patched: 'Bun v1.4.4',
-    slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
-  },
-  {
-    id: 'CVE-2026-108142',
-    component: 'Veeam Backup & Replication 13 CDP Coordinator',
-    severity: 'CRITICAL',
-    cvss: '9.1',
-    affected: 'B&R 13.1 <= 13.1.1.18, 13.0 <= 13.0.2.29',
-    patched: 'B&R 13.1.2 (13.1.2.57), 13.0.3 (13.0.3.63)',
-    slug: 'veeam-backup-replication-13-cve-2026-108142',
-  },
-  {
-    id: 'CVE-2026-91403',
-    component: 'Oracle Java SE / GraalVM JSSE TLS',
-    severity: 'CRITICAL',
-    cvss: '9.1',
-    affected: 'JDK 8u431, 11.0.25, 17.0.13, 21.0.5, 25.0.1',
-    patched: 'Oracle Out-of-Band Security Alert Patch',
-    slug: 'oracle-java-jsse-cve-2026-91403-out-of-band-alert',
-  },
-  {
-    id: 'CVE-2026-106076',
-    component: 'Veeam Backup for Microsoft 365 Cross-Tenant SQLi',
-    severity: 'CRITICAL',
-    cvss: '9.0',
-    affected: 'Backup for Microsoft 365 < 8.6 P1',
-    patched: 'Backup for Microsoft 365 8.6 P1 (8.6.0.5011)',
-    slug: 'veeam-backup-replication-13-cve-2026-108142',
-  },
-  {
-    id: 'CVE-2026-110720',
-    component: 'HashiCorp consul-k8s Webhook Auth Bypass',
-    severity: 'HIGH',
-    cvss: '8.8',
-    affected: 'consul-k8s 1.4.x – 1.6.x',
-    patched: 'consul-k8s 1.6.3, 1.5.5, 1.4.8',
-    slug: 'ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s',
-  },
-  {
-    id: 'CVE-2026-111500',
-    component: 'Node.js TLS ALPN Callback Race',
-    severity: 'HIGH',
-    cvss: '8.1',
-    affected: 'Node.js 22.x, 24.x, 25.x',
-    patched: 'v22.22.4, v24.16.0, v25.10.0',
-    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
-  },
-  {
-    id: 'CVE-2026-111508',
-    component: 'Node.js Permission Model FS Bypass',
-    severity: 'HIGH',
-    cvss: '7.7',
-    affected: 'Node.js 20.x, 22.x, 24.x, 25.x',
-    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
-    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
-  },
-  {
-    id: 'GHSA-54x7-74r2',
-    component: 'Bun Node.js Brotli Stream Port',
-    severity: 'HIGH',
-    cvss: '7.5',
-    affected: 'Bun < v1.4.4',
-    patched: 'Bun v1.4.4',
-    slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
-  },
-  {
-    id: 'CVE-2026-111510',
-    component: 'Node.js HTTP/2 CONTINUATION Flood',
-    severity: 'HIGH',
-    cvss: '7.5',
-    affected: 'Node.js 20.x, 22.x, 24.x, 25.x',
-    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
-    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
-  },
-  {
-    id: 'CVE-2026-111498',
-    component: 'Node.js llhttp Chunked Extension Smuggling',
-    severity: 'MEDIUM',
-    cvss: '6.5',
-    affected: 'Node.js 20.x, 22.x, 24.x, 25.x',
-    patched: 'v20.20.4, v22.22.4, v24.16.0, v25.10.0',
-    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
-  },
-];
+const cveRecords = getMergedCveRecords(allArticles);
 
 const securityPageSchema = {
   '@context': 'https://schema.org',
@@ -170,7 +35,7 @@ const securityPageSchema = {
       '@type': 'ListItem',
       position: idx + 1,
       name: `${row.id} — ${row.component} (${row.severity}, CVSS ${row.cvss})`,
-      url: `${SITE}/articles/${row.slug}`,
+      url: `${SITE}/cve/${row.slugId}`,
     })),
   },
 };
@@ -227,7 +92,7 @@ const breadcrumbSchema = {
         Vulnerability &amp; Advisory Index
       </h1>
       <p class="section-lead-copy">
-        Verified Common Vulnerabilities and Exposures across server runtimes, language toolchains, boot firmware, and enterprise backup stacks, indexed with affected branches and upstream patch releases.
+        Verified Common Vulnerabilities and Exposures across server runtimes, language toolchains, boot firmware, and enterprise backup stacks, indexed with dedicated CVE datasheets, affected branches, and upstream patch releases.
       </p>
     </header>
 
@@ -257,18 +122,22 @@ const breadcrumbSchema = {
             <th scope="col">Severity</th>
             <th scope="col">Affected Branches</th>
             <th scope="col">Patched Release</th>
-            <th scope="col">Analysis</th>
+            <th scope="col">Advisory</th>
           </tr>
         </thead>
         <tbody id="cve-table-body">
           {cveRecords.map((row) => (
             <tr data-row-sev={row.severity}>
               <td>
-                <a href={`/articles/${row.slug}`} class="cve-id-link">
+                <a href={`/cve/${row.slugId}`} class="cve-id-link" title={`View ${row.id} technical datasheet`}>
                   {row.id}
                 </a>
               </td>
-              <td style="font-weight:500; color:var(--ink);">{row.component}</td>
+              <td style="font-weight:500; color:var(--ink);">
+                <a href={`/cve/${row.slugId}`} style="color:inherit;">
+                  {row.component}
+                </a>
+              </td>
               <td class="font-mono" style="font-size:0.78rem; white-space:nowrap;">
                 <span class={`severity-${row.severity}`} style="font-weight:500;">
                   {row.severity} · {row.cvss}
@@ -280,9 +149,12 @@ const breadcrumbSchema = {
               <td class="font-mono" style="font-size:0.78rem; color:var(--ink);">
                 {row.patched}
               </td>
-              <td>
-                <a href={`/articles/${row.slug}`} class="cve-read-link">
-                  Read →
+              <td style="white-space:nowrap;">
+                <a href={`/cve/${row.slugId}`} class="cve-read-link" style="margin-right:10px;">
+                  Datasheet
+                </a>
+                <a href={`/articles/${row.articleSlug}`} class="cve-read-link">
+                  Article →
                 </a>
               </td>
             </tr>
