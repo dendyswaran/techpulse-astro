@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { toCveSlug } from '../data/cves';
 
 interface Props {
   article: CollectionEntry<'articles'>;
@@ -71,9 +72,13 @@ const primaryCve = cveIds && cveIds.length > 0 ? cveIds[0] : null;
         {primaryCve && (
           <>
             <span>·</span>
-            <span class={`kicker-cve ${severity ? `severity-${severity}` : ''}`}>
+            <a
+              href={`/cve/${toCveSlug(primaryCve)}`}
+              class={`kicker-cve kicker-cve-link ${severity ? `severity-${severity}` : ''}`}
+              title={`View ${primaryCve} advisory datasheet`}
+            >
               {primaryCve}{cvss ? ` · ${cvss}` : ''}
-            </span>
+            </a>
           </>
         )}
       </div>
@@ -96,7 +101,7 @@ const primaryCve = cveIds && cveIds.length > 0 ? cveIds[0] : null;
           aria-label={`Bookmark ${title}`}
           title="Save to reading list"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
           </svg>
         </button>

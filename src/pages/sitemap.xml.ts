@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { getMergedCveRecords } from '../data/cves';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -16,6 +17,8 @@ export const GET: APIRoute = async () => {
   const articles = (await getCollection('articles')).sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
   );
+
+  const cveRecords = getMergedCveRecords(articles);
 
   const latestDate =
     articles.length > 0
@@ -63,6 +66,19 @@ export const GET: APIRoute = async () => {
     })
     .join('\n');
 
+  const cveEntries = cveRecords
+    .map((cve) => {
+      const loc = `${SITE}/cve/${cve.slugId}`;
+      const lastmod = `${cve.publishedDate}T00:00:00.000Z`;
+      return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>`;
+    })
+    .join('\n');
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -70,6 +86,7 @@ export const GET: APIRoute = async () => {
 >
 ${staticEntries}
 ${articleEntries}
+${cveEntries}
 </urlset>`;
 
   return new Response(xml, {

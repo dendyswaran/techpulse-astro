@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
+import { CURATED_CVE_RECORDS } from '../data/cves';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -9,50 +10,7 @@ const allArticles = (await getCollection('articles')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
-const advisoryLedger = [
-  {
-    id: 'CVE-2026-111497',
-    label: 'Node.js Brotli RCE',
-    cvss: '9.8',
-    severity: 'CRITICAL',
-    slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
-  },
-  {
-    id: 'CVE-2026-97631',
-    label: 'EDK2 UEFI PXE Ring-0',
-    cvss: '9.5',
-    severity: 'CRITICAL',
-    slug: 'uefi-edk2-pxe-cve-2026-97631-boot-firmware',
-  },
-  {
-    id: 'CVE-2026-109618',
-    label: 'PHP SAPI Pre-Auth RCE',
-    cvss: '9.2',
-    severity: 'CRITICAL',
-    slug: 'php2shell-rce-cve-2026-109618-ditemukan-ai',
-  },
-  {
-    id: 'GHSA-cf8x-9m69',
-    label: 'Bun HTTP/3 QPACK DoS',
-    cvss: '9.2',
-    severity: 'HIGH',
-    slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
-  },
-  {
-    id: 'CVE-2026-108142',
-    label: 'Veeam B&R 13 Bypass',
-    cvss: '9.1',
-    severity: 'CRITICAL',
-    slug: 'veeam-backup-replication-13-cve-2026-108142',
-  },
-  {
-    id: 'CVE-2026-91403',
-    label: 'Oracle Java JSSE TLS',
-    cvss: '9.1',
-    severity: 'CRITICAL',
-    slug: 'oracle-java-jsse-cve-2026-91403-out-of-band-alert',
-  },
-];
+const advisoryLedger = CURATED_CVE_RECORDS.slice(0, 7);
 
 const staffPicks = allArticles.filter((a) => a.data.featured).slice(0, 4);
 
@@ -157,7 +115,7 @@ const homeCollectionSchema = {
       <!-- Right Sidebar (Separated by a single 1px vertical hairline, zero boxed cards) -->
       <aside class="right-sidebar" aria-label="Editorial Rail">
         <div class="sidebar-sticky">
-          <!-- Section 1: Active Advisories (Minimalist Ledger) -->
+          <!-- Section 1: Active Advisories (Minimalist Ledger linking to /cve/[id]) -->
           <section class="sidebar-section">
             <h2 class="sidebar-heading">
               <span>Active Advisories</span>
@@ -165,9 +123,9 @@ const homeCollectionSchema = {
             </h2>
             <div class="advisory-ledger">
               {advisoryLedger.map((item) => (
-                <a href={`/articles/${item.slug}`} class="advisory-ledger-row">
+                <a href={`/cve/${item.slugId}`} class="advisory-ledger-row" title={`${item.id} — ${item.component}`}>
                   <span class="ledger-id">{item.id}</span>
-                  <span class="ledger-title">{item.label}</span>
+                  <span class="ledger-title">{item.shortLabel}</span>
                   <span class={`ledger-score severity-${item.severity}`}>{item.cvss}</span>
                 </a>
               ))}

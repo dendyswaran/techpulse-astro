@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
+import { toCveSlug } from '../../data/cves';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -75,6 +76,12 @@ const canonicalArticleUrl = `${SITE}/articles/${article.slug}`;
 const absCoverUrl = coverImage
   ? `${SITE}${coverImage}`
   : `${SITE}/images/covers/openai-gpt-6-1-terra-mirendil-fern-10m-context.webp`;
+
+const encodedUrl = encodeURIComponent(canonicalArticleUrl);
+const encodedTitle = encodeURIComponent(`${title} — TechPulse`);
+const xShareUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
+const hnShareUrl = `https://news.ycombinator.com/submitlink?u=${encodedUrl}&t=${encodeURIComponent(title)}`;
+const linkedinShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
 
 const rawBody = article.body || '';
 const wordCount = rawBody
@@ -223,6 +230,42 @@ const breadcrumbSchema = {
         </div>
 
         <div class="byline-actions">
+          <a
+            href={xShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="byline-icon-btn"
+            data-share-method="x"
+            title="Share on X (Twitter)"
+            aria-label="Share on X (Twitter)"
+          >
+            X
+          </a>
+
+          <a
+            href={hnShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="byline-icon-btn"
+            data-share-method="hackernews"
+            title="Submit to Hacker News"
+            aria-label="Submit to Hacker News"
+          >
+            HN
+          </a>
+
+          <a
+            href={linkedinShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="byline-icon-btn"
+            data-share-method="linkedin"
+            title="Share on LinkedIn"
+            aria-label="Share on LinkedIn"
+          >
+            in
+          </a>
+
           <button
             type="button"
             class="byline-icon-btn"
@@ -297,7 +340,16 @@ const breadcrumbSchema = {
       <section class="spec-datasheet" aria-label="Vulnerability Specification">
         <div class="spec-row">
           <div class="spec-key">Identifier</div>
-          <div class="spec-val">{cveIds.join(', ')}</div>
+          <div class="spec-val">
+            {cveIds.map((id, idx) => (
+              <>
+                <a href={`/cve/${toCveSlug(id)}`} class="spec-cve-link" title={`View ${id} advisory datasheet`}>
+                  {id}
+                </a>
+                {idx < cveIds.length - 1 ? ', ' : ''}
+              </>
+            ))}
+          </div>
         </div>
         {(severity || cvss) && (
           <div class="spec-row">
@@ -357,6 +409,67 @@ const breadcrumbSchema = {
       </section>
     )}
 
+    <!-- Editorial Share Bar (X, Hacker News, LinkedIn, Copy Link) -->
+    <div class="article-share-bar" aria-label="Share this dispatch">
+      <span class="article-share-label">Share Dispatch</span>
+      <div class="article-share-actions">
+        <a
+          href={xShareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-pill-btn"
+          data-share-method="x"
+        >
+          <span>Post on X</span>
+        </a>
+        <a
+          href={hnShareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-pill-btn"
+          data-share-method="hackernews"
+        >
+          <span>Hacker News</span>
+        </a>
+        <a
+          href={linkedinShareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-pill-btn"
+          data-share-method="linkedin"
+        >
+          <span>LinkedIn</span>
+        </a>
+        <button
+          type="button"
+          class="share-pill-btn"
+          id="footer-copy-link-btn"
+        >
+          <span>Copy Link</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Print-Styled RSS & CVE Syndication Callout Box -->
+    <aside class="syndication-box" aria-label="Follow TechPulse Dispatches">
+      <div class="editorial-brief-label">Syndication &amp; Feeds</div>
+      <h2 class="syndication-title">Follow TechPulse Dispatches</h2>
+      <p class="syndication-desc">
+        Receive new systems engineering analyses, frontier AI evaluations, and emergency CVE advisories in Feedly, Inoreader, NetNewsWire, or your team’s Slack/Discord RSS integration.
+      </p>
+      <div class="syndication-actions">
+        <a href="/rss.xml" class="syndication-btn-primary" data-share-method="rss_feed">
+          <span>RSS 2.0 Feed (/rss.xml)</span>
+        </a>
+        <button type="button" class="syndication-btn-secondary" id="copy-rss-url-btn">
+          <span>Copy RSS URL</span>
+        </button>
+        <a href="/security" class="syndication-btn-secondary">
+          <span>CVE Advisory Index →</span>
+        </a>
+      </div>
+    </aside>
+
     <!-- Previous / Next Dispatch Internal Linking -->
     {(olderArticle || newerArticle) && (
       <nav class="article-prev-next" aria-label="Adjacent dispatches">
@@ -394,7 +507,7 @@ const breadcrumbSchema = {
     )}
   </article>
 
-  <script is:inline define:vars={{ slug: article.slug, category }}>
+  <script is:inline define:vars={{ slug: article.slug, category, siteOrigin: SITE }}>
     (function () {
       var bar = document.getElementById('reading-progress-bar');
       var milestones = { 25: false, 50: false, 75: false, 100: false };
@@ -442,22 +555,69 @@ const breadcrumbSchema = {
         });
       }
 
+      function handleCopyLink(btnEl, restoreHtml) {
+        if (!btnEl || !navigator.clipboard) return;
+        navigator.clipboard.writeText(window.location.href);
+        var orig = restoreHtml || btnEl.innerHTML;
+        btnEl.textContent = '✓ Copied';
+        setTimeout(function () {
+          btnEl.innerHTML = orig;
+        }, 1400);
+        if (window.tpTrack) {
+          window.tpTrack('article_share', { method: 'copy_link', slug: slug });
+        }
+      }
+
       var copyBtn = document.getElementById('copy-link-btn');
       if (copyBtn) {
+        var origTopHtml = copyBtn.innerHTML;
         copyBtn.addEventListener('click', function () {
           if (navigator.clipboard) {
             navigator.clipboard.writeText(window.location.href);
-            var orig = copyBtn.innerHTML;
             copyBtn.textContent = '✓';
             setTimeout(function () {
-              copyBtn.innerHTML = orig;
+              copyBtn.innerHTML = origTopHtml;
             }, 1400);
             if (window.tpTrack) {
-              window.tpTrack('article_share_copy', { article_slug: slug });
+              window.tpTrack('article_share', { method: 'copy_link', slug: slug });
             }
           }
         });
       }
+
+      var footerCopyBtn = document.getElementById('footer-copy-link-btn');
+      if (footerCopyBtn) {
+        var origFooterHtml = footerCopyBtn.innerHTML;
+        footerCopyBtn.addEventListener('click', function () {
+          handleCopyLink(footerCopyBtn, origFooterHtml);
+        });
+      }
+
+      var copyRssBtn = document.getElementById('copy-rss-url-btn');
+      if (copyRssBtn) {
+        var origRssHtml = copyRssBtn.innerHTML;
+        copyRssBtn.addEventListener('click', function () {
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(siteOrigin + '/rss.xml');
+            copyRssBtn.textContent = '✓ RSS URL Copied';
+            setTimeout(function () {
+              copyRssBtn.innerHTML = origRssHtml;
+            }, 1500);
+            if (window.tpTrack) {
+              window.tpTrack('article_share', { method: 'copy_rss_url', slug: slug });
+            }
+          }
+        });
+      }
+
+      document.querySelectorAll('[data-share-method]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var method = el.getAttribute('data-share-method') || 'unknown';
+          if (window.tpTrack) {
+            window.tpTrack('article_share', { method: method, slug: slug });
+          }
+        });
+      });
 
       document.querySelectorAll('.source-link').forEach(function (link) {
         link.addEventListener('click', function () {
