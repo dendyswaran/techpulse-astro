@@ -18,6 +18,13 @@ const advisoryLedger = [
     slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
   },
   {
+    id: 'CVE-2026-97631',
+    label: 'EDK2 UEFI PXE Ring-0',
+    cvss: '9.5',
+    severity: 'CRITICAL',
+    slug: 'uefi-edk2-pxe-cve-2026-97631-boot-firmware',
+  },
+  {
     id: 'CVE-2026-109618',
     label: 'PHP SAPI Pre-Auth RCE',
     cvss: '9.2',
@@ -30,6 +37,13 @@ const advisoryLedger = [
     cvss: '9.2',
     severity: 'HIGH',
     slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
+  },
+  {
+    id: 'CVE-2026-108142',
+    label: 'Veeam B&R 13 Bypass',
+    cvss: '9.1',
+    severity: 'CRITICAL',
+    slug: 'veeam-backup-replication-13-cve-2026-108142',
   },
   {
     id: 'CVE-2026-91403',
@@ -54,11 +68,13 @@ const popularTopics = [
   'Bun',
   'PHP',
   'Java',
+  'UEFI',
+  'Veeam',
+  'Anthropic',
   'AI Agents',
   'LLM',
   'Astro',
   'Zero-Day',
-  'TLS',
   'RCE',
 ];
 
@@ -68,7 +84,7 @@ const homeCollectionSchema = {
   '@id': `${SITE}/#collection`,
   name: 'TechPulse — Systems, AI & Security Advisories',
   description:
-    'Independent engineering reporting on software systems, foundation models, and runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, and AI infrastructure.',
+    'Independent engineering reporting on software systems, foundation models, and runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and AI infrastructure.',
   url: `${SITE}/`,
   isPartOf: { '@id': `${SITE}/#website` },
   mainEntity: {
@@ -87,7 +103,7 @@ const homeCollectionSchema = {
 
 <BaseLayout
   title="TechPulse — Systems, AI & Security Advisories"
-  description="Independent engineering reporting on software systems, foundation models, and runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, and AI infrastructure."
+  description="Independent engineering reporting on software systems, foundation models, and runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and AI infrastructure."
   activeNav="home"
   canonicalPath="/"
   ogImage={allArticles[0]?.data.coverImage}
@@ -96,7 +112,7 @@ const homeCollectionSchema = {
   jsonLd={homeCollectionSchema}
 >
   <div class="container-wide">
-    <h1 class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+    <h1 class="sr-only">
       TechPulse — Systems, AI &amp; Security Advisories
     </h1>
 
@@ -104,36 +120,29 @@ const homeCollectionSchema = {
       <!-- Left Column (680px): Borderless Tab Strip + Typographic Stream -->
       <div class="main-stream">
         <div class="category-tabs" role="tablist" aria-label="Filter by Section">
-          <button type="button" class="cat-tab active" data-filter-cat="all">
+          <button type="button" role="tab" aria-selected="true" class="cat-tab active" data-filter-cat="all">
             All
           </button>
-          <button type="button" class="cat-tab" data-filter-cat="ai">
+          <button type="button" role="tab" aria-selected="false" class="cat-tab" data-filter-cat="ai">
             AI
           </button>
-          <button type="button" class="cat-tab" data-filter-cat="security">
+          <button type="button" role="tab" aria-selected="false" class="cat-tab" data-filter-cat="security">
             Security
           </button>
-          <button type="button" class="cat-tab" data-filter-cat="tech-update">
+          <button type="button" role="tab" aria-selected="false" class="cat-tab" data-filter-cat="tech-update">
             Systems
           </button>
-          <button type="button" class="cat-tab" data-filter-cat="tech-news">
+          <button type="button" role="tab" aria-selected="false" class="cat-tab" data-filter-cat="tech-news">
             Industry
           </button>
-          <a href="/security" class="cat-tab" style="margin-left:auto;">
+          <a href="/security" class="cat-tab cat-tab-right">
             CVE Index
           </a>
         </div>
 
-        <div
-          id="active-tag-banner"
-          style="display:none; padding:14px 0; border-bottom:1px solid var(--hairline); font-size:0.8125rem; color:var(--ink-muted); align-items:center; justify-content:space-between;"
-        >
+        <div id="active-tag-banner" class="tag-filter-banner">
           <span>Topic: <strong id="active-tag-name" style="color:var(--ink); font-weight:500;"></strong></span>
-          <button
-            type="button"
-            id="clear-tag-filter"
-            style="background:none; border:none; color:var(--ink); font-size:0.8125rem; cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:3px;"
-          >
+          <button type="button" id="clear-tag-filter" class="tag-filter-clear">
             Clear
           </button>
         </div>
@@ -152,7 +161,7 @@ const homeCollectionSchema = {
           <section class="sidebar-section">
             <h2 class="sidebar-heading">
               <span>Active Advisories</span>
-              <a href="/security" class="sidebar-heading-link">Index</a>
+              <a href="/security" class="sidebar-heading-link">Full Index →</a>
             </h2>
             <div class="advisory-ledger">
               {advisoryLedger.map((item) => (
@@ -201,7 +210,7 @@ const homeCollectionSchema = {
           </section>
 
           <!-- Section 4: Reading List -->
-          <section class="sidebar-section" style="margin-bottom:0;">
+          <section class="sidebar-section">
             <h2 class="sidebar-heading">
               <span>Reading List</span>
             </h2>
@@ -243,7 +252,9 @@ const homeCollectionSchema = {
 
         topicChips.forEach(function (chip) {
           var t = chip.getAttribute('data-topic-chip') || '';
-          chip.classList.toggle('active', activeTag === t && activeTag !== '');
+          var isChipActive = activeTag === t && activeTag !== '';
+          chip.classList.toggle('active', isChipActive);
+          chip.setAttribute('aria-pressed', isChipActive ? 'true' : 'false');
         });
 
         if (tagBanner && tagNameEl) {
@@ -270,7 +281,9 @@ const homeCollectionSchema = {
         tab.addEventListener('click', function () {
           activeCat = tab.getAttribute('data-filter-cat') || 'all';
           tabs.forEach(function (t) {
-            t.classList.toggle('active', t === tab);
+            var isSel = t === tab;
+            t.classList.toggle('active', isSel);
+            t.setAttribute('aria-selected', isSel ? 'true' : 'false');
           });
           applyFilter();
           if (window.tpTrack) {
