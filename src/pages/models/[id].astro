@@ -1,0 +1,463 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  AI_MODELS,
+  GPU_PRESETS,
+  QUANTIZATION_PRESETS,
+  calculateVramAndSpeed,
+  type AiModelRecord,
+} from '../../data/models';
+
+const SITE = 'https://www.techpulsenews.tech';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles');
+  return AI_MODELS.map((model) => {
+    const linkedArticle = model.articleSlug
+      ? articles.find((a) => a.slug === model.articleSlug) || null
+      : null;
+    const peerModels = AI_MODELS.filter((m) => m.id !== model.id).slice(0, 6);
+    return {
+      params: { id: model.id },
+      props: {
+        model,
+        linkedArticle,
+        peerModels,
+      },
+    };
+  });
+}
+
+interface Props {
+  model: AiModelRecord;
+  linkedArticle: any;
+  peerModels: AiModelRecord[];
+}
+
+const { model, linkedArticle, peerModels } = Astro.props;
+
+const canonicalUrl = `${SITE}/models/${model.id}`;
+const coverImage =
+  linkedArticle?.data?.coverImage ||
+  '/images/covers/openai-gpt-6-1-terra-mirendil-fern-10m-context.webp';
+
+const q4Est = model.isOpenWeight
+  ? calculateVramAndSpeed(model, 'q4_k_m', 16384, 16, 448)
+  : null;
+const q8Est = model.isOpenWeight
+  ? calculateVramAndSpeed(model, 'q8_0', 16384, 24, 1008)
+  : null;
+const fp16Est = model.isOpenWeight
+  ? calculateVramAndSpeed(model, 'fp16', 16384, 80, 3350)
+  : null;
+
+const pageTitle = model.isOpenWeight
+  ? `${model.name} — GPU VRAM Requirements, Q4_K_M Sizing & Token Price | TechPulse`
+  : `${model.name} — API Token Pricing, ${model.contextLabel} Context & Cost Calculator | TechPulse`;
+
+const pageDescription = model.isOpenWeight
+  ? `${model.name} (${model.paramsLabel}) local GPU VRAM requirements (${q4Est?.totalGb} GB at Q4_K_M, ${fp16Est?.totalGb} GB at FP16), RTX 5060 Ti 16GB / RTX 4090 / H100 tok/s speed benchmarks, and API pricing ($${model.inputPricePer1M}/1M input).`
+  : `${model.name} (${model.provider}) technical specification, ${model.contextLabel} context window, prompt caching economics ($${model.cachedInputPricePer1M}/1M cached, $${model.inputPricePer1M}/1M input, $${model.outputPricePer1M}/1M output), and monthly spend calculator.`;
+
+const softwareSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  '@id': `${canonicalUrl}#model`,
+  name: model.name,
+  applicationCategory: 'ArtificialIntelligenceApplication',
+  operatingSystem: model.isOpenWeight ? 'Linux, macOS, Windows (CUDA, Metal, ROCm, vLLM, Ollama)' : 'Cloud API',
+  softwareVersion: model.releaseDate,
+  description: model.summary,
+  url: canonicalUrl,
+  author: {
+    '@type': 'Organization',
+    name: model.provider,
+  },
+  offers: {
+    '@type': 'Offer',
+    price: String(model.inputPricePer1M),
+    priceCurrency: 'USD',
+    description: `$${model.inputPricePer1M.toFixed(2)} per 1M input tokens ($${model.cachedInputPricePer1M.toFixed(2)} cached), $${model.outputPricePer1M.toFixed(2)} per 1M output tokens`,
+  },
+};
+
+const faqEntities = [
+  {
+    '@type': 'Question',
+    name: `How much does ${model.name} cost per 1M tokens?`,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: `${model.name} costs $${model.inputPricePer1M.toFixed(2)} per 1,000,000 uncached input tokens, $${model.cachedInputPricePer1M.toFixed(2)} per 1,000,000 cached input tokens, and $${model.outputPricePer1M.toFixed(2)} per 1,000,000 output tokens (${model.apiProviderNote}).`,
+    },
+  },
+  {
+    '@type': 'Question',
+    name: `What is the maximum context window of ${model.name}?`,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: `${model.name} supports a maximum context window of ${model.contextLabel} (${model.contextTokens.toLocaleString('en-US')} tokens) and up to ${model.maxOutputTokens.toLocaleString('en-US')} output tokens using ${model.architecture}.`,
+    },
+  },
+];
+
+if (model.isOpenWeight && q4Est && fp16Est) {
+  faqEntities.push({
+    '@type': 'Question',
+    name: `How much GPU VRAM is required to run ${model.name} locally?`,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: `At 4-bit quantization (Q4_K_M / AWQ) with a 16K context window, ${model.name} (${model.paramsLabel}) requires approximately ${q4Est.totalGb} GB of total VRAM (${q4Est.weightsGb} GB for weights + ${(q4Est.kvCacheGb + q4Est.overheadGb).toFixed(1)} GB for KV-cache and runtime). In full 16-bit precision (FP16/BF16), it requires approximately ${fp16Est.totalGb} GB of VRAM. Recommended hardware: ${model.recommendedGpu}.`,
+    },
+  });
+}
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqEntities,
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${SITE}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'AI Models & GPU VRAM Calculator',
+      item: `${SITE}/models`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: model.name,
+      item: canonicalUrl,
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  activeNav="models"
+  canonicalPath={`/models/${model.id}`}
+  ogType="article"
+  ogImage={coverImage}
+  ogImageAlt={`${model.name} specification and calculator`}
+  publishedTime={`${model.releaseDate}T00:00:00.000Z`}
+  modifiedTime={`${model.releaseDate}T00:00:00.000Z`}
+  section="AI Models & Infrastructure"
+  tags={[model.name, model.shortName, model.provider, model.license, 'VRAM Calculator', 'LLM Pricing']}
+  jsonLd={[softwareSchema, faqSchema, breadcrumbSchema]}
+>
+  <article class="container-reading">
+    <header class="article-header">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li>
+            <a href="/">Home</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <a href="/models">Models &amp; VRAM Calculator</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <span class="breadcrumb-current" aria-current="page">{model.shortName}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="cve-meta-header-row">
+        <span class="cve-id-badge">{model.provider}</span>
+        <span class="cve-sev-badge">
+          {model.tier === 'open-weight' ? `OPEN-WEIGHT · ${model.license}` : 'FRONTIER API'}
+        </span>
+        <span class="font-mono" style="font-size:0.78rem; color:var(--ink-muted);">
+          Context: {model.contextLabel}
+        </span>
+      </div>
+
+      <h1 class="article-headline">{model.name}</h1>
+      <p class="article-deck">{model.summary}</p>
+    </header>
+
+    <!-- Primary Technical Datasheet -->
+    <section class="spec-datasheet" aria-label="Model Technical Specification">
+      <div class="spec-row">
+        <div class="spec-key">Provider</div>
+        <div class="spec-val">{model.provider} ({model.license})</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Architecture</div>
+        <div class="spec-val">{model.architecture}</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Parameters</div>
+        <div class="spec-val">{model.paramsLabel}</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Context Window</div>
+        <div class="spec-val">{model.contextLabel} (Max Output: {model.maxOutputTokens.toLocaleString('en-US')} tokens)</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">API Pricing</div>
+        <div class="spec-val">
+          Input: <strong>${model.inputPricePer1M.toFixed(2)} / 1M</strong> · Cached Input: <strong style="color:var(--brand);">${model.cachedInputPricePer1M.toFixed(2)} / 1M</strong> · Output: <strong>${model.outputPricePer1M.toFixed(2)} / 1M</strong>
+        </div>
+      </div>
+      {model.isOpenWeight && q4Est && q8Est && fp16Est && (
+        <div class="spec-row">
+          <div class="spec-key">VRAM (16K Ctx)</div>
+          <div class="spec-val">
+            Q4_K_M: <strong>{q4Est.totalGb} GB</strong> · Q8_0: <strong>{q8Est.totalGb} GB</strong> · FP16: <strong>{fp16Est.totalGb} GB</strong>
+          </div>
+        </div>
+      )}
+      <div class="spec-row">
+        <div class="spec-key">Hardware Target</div>
+        <div class="spec-val">{model.recommendedGpu}</div>
+      </div>
+    </section>
+
+    <!-- Interactive Per-Model Cost & VRAM Calculator -->
+    <section style="margin: 36px 0;">
+      <h2 class="sources-heading" style="margin-bottom:14px;">
+        Interactive Token Cost {model.isOpenWeight ? '& Local GPU VRAM ' : ''}Estimator for {model.shortName}
+      </h2>
+
+      <div class="calc-controls-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+        <div class="calc-control-group">
+          <div class="calc-label-row">
+            <label class="calc-label" for="single-req-day">Requests / Day</label>
+          </div>
+          <input type="number" id="single-req-day" class="calc-input" value="1000" min="1" step="100" />
+        </div>
+        <div class="calc-control-group">
+          <div class="calc-label-row">
+            <label class="calc-label" for="single-in-tok">Input Tokens / Req</label>
+          </div>
+          <input type="number" id="single-in-tok" class="calc-input" value="16000" min="100" step="1000" />
+        </div>
+        <div class="calc-control-group">
+          <div class="calc-label-row">
+            <label class="calc-label" for="single-out-tok">Output Tokens / Req</label>
+          </div>
+          <input type="number" id="single-out-tok" class="calc-input" value="1200" min="50" step="100" />
+        </div>
+      </div>
+
+      <div class="gpu-note-banner" style="margin-top:-12px;">
+        <div>
+          <span>Est. API Cost (0% Cache): <strong class="font-mono" id="single-cost-uncached" style="color:var(--ink);">--</strong>/mo</span>
+          <span style="margin: 0 10px; color:var(--hairline-strong);">|</span>
+          <span>With 70% Prompt Cache Hit: <strong class="font-mono" id="single-cost-cached" style="color:var(--brand);">--</strong>/mo</span>
+        </div>
+        <a href="/models" class="font-mono" style="font-size:0.75rem; text-decoration:underline;">
+          Compare all 12 models →
+        </a>
+      </div>
+    </section>
+
+    <!-- GPU Hardware Compatibility Matrix (for Open-Weight Models) -->
+    {model.isOpenWeight && (
+      <section style="margin: 40px 0;">
+        <h2 class="sources-heading" style="margin-bottom:14px;">
+          GPU Hardware Compatibility Matrix ({model.shortName} at 16K Context)
+        </h2>
+        <div class="cve-table-wrap" style="margin-bottom:20px;">
+          <table class="cve-ledger-table">
+            <thead>
+              <tr>
+                <th>GPU / Hardware Profile</th>
+                <th>VRAM</th>
+                <th>Q4_K_M (4.8-bit)</th>
+                <th>Q8_0 (8-bit)</th>
+                <th>Est. Speed (Q4_K_M)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GPU_PRESETS.map((gpu) => {
+                const estQ4 = calculateVramAndSpeed(model, 'q4_k_m', 16384, gpu.vramGb, gpu.bandwidthGbs);
+                const estQ8 = calculateVramAndSpeed(model, 'q8_0', 16384, gpu.vramGb, gpu.bandwidthGbs);
+                return (
+                  <tr>
+                    <td>
+                      <strong style="color:var(--ink); font-weight:600; font-size:0.84rem;">{gpu.shortLabel}</strong>
+                      <div style="font-size:0.74rem; color:var(--ink-muted);">{gpu.bandwidthGbs} GB/s</div>
+                    </td>
+                    <td class="font-mono" style="font-weight:500;">{gpu.vramGb} GB</td>
+                    <td>
+                      <span class={`fit-badge fit-${estQ4.status}`}>
+                        {estQ4.statusLabel} ({estQ4.totalGb} GB)
+                      </span>
+                    </td>
+                    <td>
+                      <span class={`fit-badge fit-${estQ8.status}`}>
+                        {estQ8.statusLabel} ({estQ8.totalGb} GB)
+                      </span>
+                    </td>
+                    <td class="font-mono" style="font-weight:600;">
+                      ~{estQ4.estimatedTokPerSec} tok/s
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="editorial-brief" style="margin: 20px 0;">
+          <div class="editorial-brief-label">Quick Launch CLI Command</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <code class="font-mono" style="font-size:0.8125rem; color:var(--ink); word-break:break-all;">
+              {model.localCliCommand}
+            </code>
+            <button type="button" class="cli-copy-btn" id="copy-model-cli-btn" data-cli={model.localCliCommand}>
+              Copy Command
+            </button>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <div class="prose-editorial">
+      <h2>Architectural Strengths &amp; Target Workloads</h2>
+      <ul>
+        {model.strengths.map((s) => (
+          <li>{s}</li>
+        ))}
+      </ul>
+      <p>
+        <strong>Primary Engineering Workloads:</strong> {model.workloads.join(' · ')}.
+      </p>
+
+      <h2>Frequently Asked Questions ({model.shortName})</h2>
+      <h3>How much does {model.name} cost per 1M tokens?</h3>
+      <p>
+        <strong>{model.name}</strong> is priced at <strong>${model.inputPricePer1M.toFixed(2)}</strong> per 1M uncached input tokens, <strong>${model.cachedInputPricePer1M.toFixed(2)}</strong> per 1M cached input tokens, and <strong>${model.outputPricePer1M.toFixed(2)}</strong> per 1M output tokens ({model.apiProviderNote}).
+      </p>
+
+      <h3>What is the context window of {model.name}?</h3>
+      <p>
+        It supports up to <strong>{model.contextLabel}</strong> ({model.contextTokens.toLocaleString('en-US')} tokens) and a maximum generation output of <strong>{model.maxOutputTokens.toLocaleString('en-US')} tokens</strong>.
+      </p>
+    </div>
+
+    <!-- Full TechPulse Editorial Deep-Dive Link Card -->
+    {linkedArticle && (
+      <section class="cve-deepdive-box" aria-label="TechPulse Editorial Analysis">
+        <div class="editorial-brief-label">Full TechPulse Engineering Analysis</div>
+        <a href={`/articles/${linkedArticle.slug}`} class="cve-deepdive-card">
+          {linkedArticle.data.coverImage && (
+            <img
+              src={linkedArticle.data.coverImage}
+              alt={linkedArticle.data.coverAlt || linkedArticle.data.title}
+              width="240"
+              height="135"
+              loading="lazy"
+              decoding="async"
+              class="cve-deepdive-thumb"
+            />
+          )}
+          <div class="cve-deepdive-content">
+            <h3 class="cve-deepdive-title">{linkedArticle.data.title}</h3>
+            <p class="cve-deepdive-sub">{linkedArticle.data.subtitle}</p>
+            <span class="cve-deepdive-cta">Read Full Technical Dispatch →</span>
+          </div>
+        </a>
+      </section>
+    )}
+
+    <!-- Peer Models Ledger -->
+    <section class="related-section">
+      <h2 class="sources-heading" style="margin-bottom:12px;">
+        Compare Other Frontier &amp; Open-Weight Models
+      </h2>
+      <div class="advisory-ledger">
+        {peerModels.map((peer) => (
+          <a href={`/models/${peer.id}`} class="advisory-ledger-row">
+            <span class="ledger-id">{peer.shortName}</span>
+            <span class="ledger-title">{peer.paramsLabel} · {peer.contextLabel}</span>
+            <span class="ledger-score">${peer.inputPricePer1M.toFixed(2)}/1M</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </article>
+
+  <script
+    is:inline
+    define:vars={{
+      inPrice: model.inputPricePer1M,
+      cachedPrice: model.cachedInputPricePer1M,
+      outPrice: model.outputPricePer1M,
+    }}
+  >
+    (function () {
+      var reqEl = document.getElementById('single-req-day');
+      var inEl = document.getElementById('single-in-tok');
+      var outEl = document.getElementById('single-out-tok');
+      var uncachedOut = document.getElementById('single-cost-uncached');
+      var cachedOut = document.getElementById('single-cost-cached');
+
+      function recalc() {
+        var req = Math.max(1, parseFloat(reqEl ? reqEl.value : '1000') || 1000);
+        var inTok = Math.max(0, parseFloat(inEl ? inEl.value : '16000') || 16000);
+        var outTok = Math.max(0, parseFloat(outEl ? outEl.value : '1200') || 1200);
+
+        var inM = inTok / 1000000;
+        var outM = outTok / 1000000;
+
+        var monthlyUncached = (inM * inPrice + outM * outPrice) * req * 30;
+        var monthlyCached =
+          (inM * 0.3 * inPrice + inM * 0.7 * cachedPrice + outM * outPrice) * req * 30;
+
+        if (uncachedOut) {
+          uncachedOut.textContent =
+            '$' +
+            monthlyUncached.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+        }
+        if (cachedOut) {
+          cachedOut.textContent =
+            '$' +
+            monthlyCached.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+        }
+      }
+
+      [reqEl, inEl, outEl].forEach(function (el) {
+        if (el) el.addEventListener('input', recalc);
+      });
+      recalc();
+
+      var cliBtn = document.getElementById('copy-model-cli-btn');
+      if (cliBtn) {
+        var orig = cliBtn.textContent;
+        cliBtn.addEventListener('click', function () {
+          var cmd = cliBtn.getAttribute('data-cli') || '';
+          if (navigator.clipboard && cmd) {
+            navigator.clipboard.writeText(cmd);
+            cliBtn.textContent = '✓ Copied';
+            setTimeout(function () {
+              cliBtn.textContent = orig;
+            }, 1400);
+          }
+        });
+      }
+    })();
+  </script>
+</BaseLayout>

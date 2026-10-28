@@ -1845,3 +1845,265 @@ time,
 .syndication-btn-secondary:hover {
   background: var(--bg-pill-hover);
 }
+
+/* ==========================================================================
+   AI Model Pricing & Local GPU VRAM Calculator (/models & /models/[id])
+   ========================================================================== */
+.calc-workspace {
+  margin-bottom: 48px;
+}
+
+.calc-mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 28px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.calc-mode-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.calc-mode-tab {
+  padding: 12px 0;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out-quart),
+    border-color var(--duration-fast) var(--ease-out-quart);
+}
+
+.calc-mode-tab:hover {
+  color: var(--ink);
+}
+
+.calc-mode-tab.active {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--ink);
+}
+
+.calc-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  padding: 22px 24px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--hairline-strong);
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 24px;
+}
+
+.calc-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calc-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.calc-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+}
+
+.calc-value-badge {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-input,
+.calc-select {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 11px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-input:focus-visible,
+.calc-select:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.calc-range {
+  width: 100%;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.calc-preset-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.calc-preset-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  margin-right: 4px;
+}
+
+.calc-preset-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 11px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  background: var(--surface-subtle);
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out-quart),
+    background-color var(--duration-fast) var(--ease-out-quart),
+    border-color var(--duration-fast) var(--ease-out-quart);
+}
+
+.calc-preset-btn:hover {
+  color: var(--ink);
+  border-color: var(--hairline-strong);
+}
+
+.calc-preset-btn.active {
+  color: var(--bg);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.fit-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.fit-fits {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.fit-tight {
+  color: var(--high-text);
+  background: var(--high-bg);
+}
+
+.fit-multi-gpu {
+  color: var(--crit-text);
+  background: var(--crit-bg);
+}
+
+.vram-bar-track {
+  width: 100%;
+  max-width: 140px;
+  height: 5px;
+  background: var(--surface-muted);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.vram-bar-fill {
+  height: 100%;
+  background: var(--ink);
+  transition: width 160ms var(--ease-out-quart);
+}
+
+.vram-bar-fill.fit-fits {
+  background: var(--brand);
+}
+
+.vram-bar-fill.fit-tight {
+  background: var(--high-text);
+}
+
+.vram-bar-fill.fit-multi-gpu {
+  background: var(--crit-text);
+}
+
+.cli-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-secondary);
+  background: var(--surface-subtle);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cli-copy-btn:hover {
+  color: var(--ink);
+  background: var(--surface-muted);
+}
+
+.gpu-note-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  font-size: 0.8125rem;
+  color: var(--ink-secondary);
+}
+
+@media (max-width: 900px) {
+  .calc-controls-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .calc-controls-grid {
+    grid-template-columns: 1fr;
+  }
+}

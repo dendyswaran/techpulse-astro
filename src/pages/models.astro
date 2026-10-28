@@ -1,0 +1,808 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  AI_MODELS,
+  GPU_PRESETS,
+  QUANTIZATION_PRESETS,
+  calculateVramAndSpeed,
+} from '../data/models';
+
+const SITE = 'https://www.techpulsenews.tech';
+
+const openWeightModels = AI_MODELS.filter((m) => m.isOpenWeight);
+const defaultGpu = GPU_PRESETS[0]; // NVIDIA RTX 5060 Ti (16 GB GDDR7)
+const defaultQuant = 'q4_k_m';
+const defaultContext = 16384;
+
+const modelsCollectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  '@id': `${SITE}/models#calculator`,
+  name: 'TechPulse AI Model Pricing, Context & Local GPU VRAM Calculator',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web, Linux, macOS, Windows',
+  url: `${SITE}/models`,
+  description:
+    'Interactive engineering ledger and calculator for frontier LLM API token pricing (GPT-6.1 Terra, Claude Duet, Gemini 3 Pro, Mirendil Fern 10M) and local GPU VRAM sizing (NVIDIA RTX 5060 Ti 16GB, RTX 4090, RTX 5090, Apple M4 Max, H100) across Q4_K_M, Q8_0, and FP16 quantizations.',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  publisher: { '@id': `${SITE}/#organization` },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Which open-weight LLMs fit on an NVIDIA RTX 5060 Ti 16GB GPU?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'An NVIDIA RTX 5060 Ti (16 GB GDDR7, 448 GB/s) comfortably runs Qwen 3.5 14B Instruct in Q4_K_M (~10.8 GB total VRAM with 16K context at ~42 tok/s) or Q5_K_M (~12.3 GB), Mistral Small 3.2 24B in Q4_K_M (~15.6 GB at 8K context), and Qwen 3.5 32B Coder in IQ3_M (~15.4 GB).',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is local LLM GPU VRAM calculated for GGUF / AWQ / FP16 models?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Total GPU VRAM equals Model Weights (Total Parameters × Bytes per Parameter for the chosen quantization) plus KV-Cache memory (Context Tokens × KV-Cache per 1K tokens × KV quantization scale) plus CUDA/Metal runtime activation overhead (~0.7 GB to 2.1 GB).',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How much does 1M to 10M context cost on GPT-6.1 Terra, Mirendil Fern, and Gemini 3 Pro?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'With prompt caching enabled (85%–90% discount on repeated repository prefixes), Mirendil Fern 10M costs $0.18 per 1M cached input tokens, Google Gemini 3 Pro costs $0.15 per 1M cached input tokens, and OpenAI GPT-6.1 Terra costs $0.25 per 1M cached input tokens.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="AI Model Pricing, 10M Context & Local GPU VRAM Calculator — TechPulse"
+  description="Interactive token cost & monthly API spend calculator for GPT-6.1 Terra, Claude Duet, Mirendil Fern 10M, and Kimi K3.1 Pro, plus local GPU VRAM & tok/s sizing for NVIDIA RTX 5060 Ti 16GB, RTX 4090, RTX 5090, and H100."
+  activeNav="models"
+  canonicalPath="/models"
+  jsonLd={[modelsCollectionSchema, faqSchema]}
+>
+  <div class="container-wide">
+    <header class="archive-header">
+      <div class="archive-kicker">Interactive Engineering Ledger · Updated Oct 2026</div>
+      <h1 class="archive-title">AI Model Pricing, Context &amp; GPU VRAM Calculator</h1>
+      <p class="archive-desc">
+        Compare monthly API token economics (including prompt caching discounts) across frontier models, or calculate exact local GPU VRAM footprints, KV-cache overhead, and generation speeds (<span class="font-mono">tok/s</span>) on hardware from an <strong>NVIDIA RTX 5060 Ti 16GB</strong> to an <strong>8× H200</strong> node.
+      </p>
+    </header>
+
+    <section class="calc-workspace" aria-label="Interactive AI Model Calculators">
+      <!-- Mode Switcher Tabs -->
+      <div class="calc-mode-tabs" role="tablist" aria-label="Calculator Mode">
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          class="calc-mode-tab active"
+          id="tab-btn-vram"
+          data-calc-tab="vram"
+        >
+          1. Local GPU VRAM &amp; Speed Calculator (RTX 5060 Ti 16GB / 4090 / M4 / H100)
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          class="calc-mode-tab"
+          id="tab-btn-api"
+          data-calc-tab="api"
+        >
+          2. API Token Pricing &amp; Monthly Spend Calculator
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          class="calc-mode-tab"
+          id="tab-btn-directory"
+          data-calc-tab="directory"
+        >
+          3. Full 12-Model Specification Directory
+        </button>
+      </div>
+
+      <!-- =================================================================
+           PANEL 1: LOCAL GPU VRAM & SPEED CALCULATOR
+           ================================================================= -->
+      <div id="calc-panel-vram" role="tabpanel" aria-labelledby="tab-btn-vram">
+        <!-- Quick Hardware Presets -->
+        <div class="calc-preset-strip" aria-label="Quick GPU Presets">
+          <span class="calc-preset-label">Hardware Preset:</span>
+          {GPU_PRESETS.map((gpu, idx) => (
+            <button
+              type="button"
+              class:list={['calc-preset-btn', { active: idx === 0 }]}
+              data-gpu-preset={gpu.id}
+              data-vram={gpu.vramGb}
+              data-bw={gpu.bandwidthGbs}
+              data-notes={gpu.notes}
+              aria-pressed={idx === 0 ? 'true' : 'false'}
+            >
+              {gpu.shortLabel}
+            </button>
+          ))}
+        </div>
+
+        <div class="calc-controls-grid">
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="vram-gpu-select">GPU / System Profile</label>
+            </div>
+            <select id="vram-gpu-select" class="calc-select">
+              {GPU_PRESETS.map((gpu) => (
+                <option value={gpu.id} data-vram={gpu.vramGb} data-bw={gpu.bandwidthGbs} data-notes={gpu.notes}>
+                  {gpu.name}
+                </option>
+              ))}
+              <option value="custom" data-vram="16" data-bw="448" data-notes="Custom VRAM and memory bandwidth configuration.">
+                Custom VRAM Capacity...
+              </option>
+            </select>
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="vram-gb-range">Available VRAM</label>
+              <span class="calc-value-badge" id="vram-gb-display">16 GB</span>
+            </div>
+            <input
+              type="range"
+              id="vram-gb-range"
+              class="calc-range"
+              min="8"
+              max="1128"
+              step="4"
+              value="16"
+            />
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="vram-quant-select">Quantization Format</label>
+            </div>
+            <select id="vram-quant-select" class="calc-select">
+              {QUANTIZATION_PRESETS.map((q) => (
+                <option value={q.id} selected={q.id === defaultQuant}>
+                  {q.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="vram-ctx-select">Context Window</label>
+            </div>
+            <select id="vram-ctx-select" class="calc-select">
+              <option value="4096">4,096 tokens (4K)</option>
+              <option value="8192">8,192 tokens (8K)</option>
+              <option value="16384" selected>16,384 tokens (16K)</option>
+              <option value="32768">32,768 tokens (32K)</option>
+              <option value="65536">65,536 tokens (64K)</option>
+              <option value="131072">131,072 tokens (128K)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="gpu-note-banner">
+          <div>
+            <strong style="color:var(--ink);">Active Hardware Note:</strong>{' '}
+            <span id="active-gpu-note">{defaultGpu.notes}</span>
+          </div>
+          <span class="font-mono" style="font-size:0.75rem; color:var(--ink-muted);" id="active-bw-label">
+            Memory Bandwidth: {defaultGpu.bandwidthGbs} GB/s
+          </span>
+        </div>
+
+        <div class="cve-table-wrap">
+          <table class="cve-ledger-table" id="vram-results-table">
+            <thead>
+              <tr>
+                <th>Open-Weight Model</th>
+                <th>Params (Total / Active)</th>
+                <th>Weights VRAM</th>
+                <th>KV-Cache + Runtime</th>
+                <th>Total VRAM Required</th>
+                <th>Hardware Fit Status</th>
+                <th>Est. Speed</th>
+                <th>Local CLI Command</th>
+              </tr>
+            </thead>
+            <tbody>
+              {openWeightModels.map((model) => {
+                const est = calculateVramAndSpeed(
+                  model,
+                  defaultQuant,
+                  defaultContext,
+                  defaultGpu.vramGb,
+                  defaultGpu.bandwidthGbs
+                );
+                const barWidth = Math.min(100, Math.max(4, est.utilizationPct));
+                return (
+                  <tr
+                    data-vram-row
+                    data-model-id={model.id}
+                    data-total-b={model.totalParamsB}
+                    data-active-b={model.activeParamsB}
+                    data-kv-fp16={model.kvCacheGbPer1kTokensFp16}
+                  >
+                    <td>
+                      <a href={`/models/${model.id}`} class="cve-article-link">
+                        {model.name}
+                      </a>
+                      <div style="font-size:0.75rem; color:var(--ink-muted); margin-top:2px;">
+                        {model.provider} · {model.license}
+                      </div>
+                    </td>
+                    <td class="font-mono" style="font-size:0.78rem; color:var(--ink-secondary); white-space:nowrap;">
+                      {model.paramsLabel}
+                    </td>
+                    <td class="font-mono" data-cell-weights style="font-weight:500;">
+                      {est.weightsGb.toFixed(1)} GB
+                    </td>
+                    <td class="font-mono" data-cell-kv style="color:var(--ink-secondary); font-size:0.8rem;">
+                      {(est.kvCacheGb + est.overheadGb).toFixed(1)} GB
+                    </td>
+                    <td>
+                      <div class="font-mono" data-cell-total style="font-weight:600; color:var(--ink);">
+                        {est.totalGb.toFixed(1)} GB{' '}
+                        <span style="font-weight:400; font-size:0.75rem; color:var(--ink-muted);" data-cell-pct>
+                          ({est.utilizationPct}%)
+                        </span>
+                      </div>
+                      <div class="vram-bar-track">
+                        <div
+                          class={`vram-bar-fill fit-${est.status}`}
+                          data-cell-bar
+                          style={`width:${barWidth}%;`}
+                        ></div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class={`fit-badge fit-${est.status}`} data-cell-status>
+                        {est.statusLabel}
+                      </span>
+                    </td>
+                    <td class="font-mono" data-cell-speed style="font-weight:600; white-space:nowrap;">
+                      ~{est.estimatedTokPerSec} tok/s
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        class="cli-copy-btn"
+                        data-copy-cli={model.localCliCommand}
+                        title={model.localCliCommand}
+                      >
+                        <span>Copy CLI</span>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- =================================================================
+           PANEL 2: API TOKEN PRICING & MONTHLY SPEND CALCULATOR
+           ================================================================= -->
+      <div id="calc-panel-api" role="tabpanel" aria-labelledby="tab-btn-api" style="display:none;">
+        <div class="calc-preset-strip" aria-label="Workload Presets">
+          <span class="calc-preset-label">Workload Preset:</span>
+          <button type="button" class="calc-preset-btn" data-workload-preset="chat" data-req="1000" data-in="2000" data-out="600" data-cache="30">
+            2K Support / Chat (1K req/day)
+          </button>
+          <button type="button" class="calc-preset-btn active" data-workload-preset="agent" data-req="1500" data-in="24000" data-out="1500" data-cache="65">
+            24K Coding Agent Loop (65% Cache)
+          </button>
+          <button type="button" class="calc-preset-btn" data-workload-preset="repo" data-req="300" data-in="150000" data-out="2500" data-cache="80">
+            150K Repo Audit (80% Cache)
+          </button>
+          <button type="button" class="calc-preset-btn" data-workload-preset="monorepo" data-req="50" data-in="1000000" data-out="4000" data-cache="85">
+            1M Full Codebase Context (85% Cache)
+          </button>
+        </div>
+
+        <div class="calc-controls-grid">
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="api-req-day">Requests / Day</label>
+              <span class="calc-value-badge" id="api-req-display">1,500 / day</span>
+            </div>
+            <input
+              type="number"
+              id="api-req-day"
+              class="calc-input"
+              min="1"
+              max="5000000"
+              step="100"
+              value="1500"
+            />
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="api-input-tokens">Input Tokens / Req</label>
+              <span class="calc-value-badge" id="api-in-display">24,000 tok</span>
+            </div>
+            <input
+              type="number"
+              id="api-input-tokens"
+              class="calc-input"
+              min="100"
+              max="10000000"
+              step="1000"
+              value="24000"
+            />
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="api-output-tokens">Output Tokens / Req</label>
+              <span class="calc-value-badge" id="api-out-display">1,500 tok</span>
+            </div>
+            <input
+              type="number"
+              id="api-output-tokens"
+              class="calc-input"
+              min="50"
+              max="196608"
+              step="100"
+              value="1500"
+            />
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <label class="calc-label" for="api-cache-rate">Prompt Cache Hit %</label>
+              <span class="calc-value-badge" id="api-cache-display">65%</span>
+            </div>
+            <input
+              type="range"
+              id="api-cache-rate"
+              class="calc-range"
+              min="0"
+              max="95"
+              step="5"
+              value="65"
+            />
+          </div>
+        </div>
+
+        <div class="cve-table-wrap">
+          <table class="cve-ledger-table" id="api-results-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Tier</th>
+                <th>Max Context</th>
+                <th>Input ($/1M)</th>
+                <th>Cached ($/1M)</th>
+                <th>Output ($/1M)</th>
+                <th>Cost / 1,000 Reqs</th>
+                <th>Est. Monthly Spend (30d)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {AI_MODELS.map((model) => {
+                // Initial default: 1500 req/day, 24000 in, 1500 out, 65% cache
+                const uncachedInM = (24000 * 0.35) / 1000000;
+                const cachedInM = (24000 * 0.65) / 1000000;
+                const outM = 1500 / 1000000;
+                const perReq =
+                  uncachedInM * model.inputPricePer1M +
+                  cachedInM * model.cachedInputPricePer1M +
+                  outM * model.outputPricePer1M;
+                const per1kReq = perReq * 1000;
+                const monthly = perReq * 1500 * 30;
+                return (
+                  <tr
+                    data-api-row
+                    data-input-price={model.inputPricePer1M}
+                    data-cached-price={model.cachedInputPricePer1M}
+                    data-output-price={model.outputPricePer1M}
+                    data-max-ctx={model.contextTokens}
+                  >
+                    <td>
+                      <a href={`/models/${model.id}`} class="cve-article-link">
+                        {model.name}
+                      </a>
+                      <div style="font-size:0.75rem; color:var(--ink-muted); margin-top:2px;">
+                        {model.provider}
+                      </div>
+                    </td>
+                    <td>
+                      <span class="cve-sev-badge" style="font-size:0.68rem;">
+                        {model.tier === 'frontier-api' ? 'FRONTIER API' : 'OPEN-WEIGHT'}
+                      </span>
+                    </td>
+                    <td class="font-mono" style="font-size:0.78rem; color:var(--ink-secondary); white-space:nowrap;">
+                      {model.contextLabel}
+                    </td>
+                    <td class="font-mono">${model.inputPricePer1M.toFixed(2)}</td>
+                    <td class="font-mono" style="color:var(--brand); font-weight:500;">
+                      ${model.cachedInputPricePer1M.toFixed(2)}
+                    </td>
+                    <td class="font-mono">${model.outputPricePer1M.toFixed(2)}</td>
+                    <td class="font-mono" data-cell-1k style="font-weight:500;">
+                      ${per1kReq.toFixed(2)}
+                    </td>
+                    <td class="font-mono" data-cell-monthly style="font-weight:700; color:var(--ink);">
+                      ${monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- =================================================================
+           PANEL 3: FULL 12-MODEL SPECIFICATION DIRECTORY
+           ================================================================= -->
+      <div id="calc-panel-directory" role="tabpanel" aria-labelledby="tab-btn-directory" style="display:none;">
+        <div class="cve-table-wrap">
+          <table class="cve-ledger-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Architecture &amp; Parameters</th>
+                <th>Context Window</th>
+                <th>API Pricing (In / Cache / Out)</th>
+                <th>Recommended Hardware</th>
+                <th>Spec &amp; Dispatch</th>
+              </tr>
+            </thead>
+            <tbody>
+              {AI_MODELS.map((model) => (
+                <tr>
+                  <td>
+                    <a href={`/models/${model.id}`} class="cve-article-link">
+                      {model.name}
+                    </a>
+                    <div style="font-size:0.75rem; color:var(--ink-muted); margin-top:2px;">
+                      {model.provider} · {model.license}
+                    </div>
+                  </td>
+                  <td style="font-size:0.8125rem; color:var(--ink-secondary);">
+                    <strong style="color:var(--ink); font-weight:500;">{model.paramsLabel}</strong>
+                    <div style="font-size:0.75rem; color:var(--ink-muted);">{model.architecture}</div>
+                  </td>
+                  <td class="font-mono" style="font-size:0.78rem; white-space:nowrap;">
+                    {model.contextLabel}
+                  </td>
+                  <td class="font-mono" style="font-size:0.78rem; white-space:nowrap;">
+                    ${model.inputPricePer1M.toFixed(2)} / ${model.cachedInputPricePer1M.toFixed(2)} / ${model.outputPricePer1M.toFixed(2)}
+                  </td>
+                  <td style="font-size:0.8rem; color:var(--ink-secondary);">
+                    {model.recommendedGpu}
+                  </td>
+                  <td style="white-space:nowrap;">
+                    <a href={`/models/${model.id}`} class="cve-id-link" style="display:inline-block; margin-right:10px;">
+                      Datasheet →
+                    </a>
+                    {model.articleSlug && (
+                      <a href={`/articles/${model.articleSlug}`} style="font-size:0.75rem; color:var(--ink-muted); text-decoration:underline;">
+                        Dispatch
+                      </a>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Editorial Engineering Notes & Methodology -->
+    <section class="container-reading" style="margin: 0; max-width: 760px;">
+      <aside class="editorial-brief" aria-label="VRAM Sizing Formula & Methodology">
+        <div class="editorial-brief-label">VRAM Sizing &amp; Bandwidth Methodology</div>
+        <ul>
+          <li>
+            <strong>Model Weights VRAM</strong>: Computed from total parameter count multiplied by effective bytes-per-parameter including block quantization metadata (<span class="font-mono">FP16 = 2.00 B/param</span>, <span class="font-mono">Q8_0 = 1.06 B/param</span>, <span class="font-mono">Q5_K_M = 0.70 B/param</span>, <span class="font-mono">Q4_K_M = 0.60 B/param</span>, <span class="font-mono">IQ3_M = 0.43 B/param</span>).
+          </li>
+          <li>
+            <strong>KV-Cache &amp; Context Scaling</strong>: Accounts for Grouped-Query Attention (GQA) on dense models and Multi-Head Latent Attention (MLA) on DeepSeek V3.2 and Kimi K3.1 Pro, plus CUDA/Metal compute buffer overhead (<span class="font-mono">0.65 GB – 2.15 GB</span>).
+          </li>
+          <li>
+            <strong>NVIDIA RTX 5060 Ti 16GB Recommendation</strong>: For 16GB GDDR7 cards (<span class="font-mono">448 GB/s</span>), <strong>Qwen 3.5 14B Instruct (`Q4_K_M` or `Q5_K_M`)</strong> is the daily-driver sweet spot (~10.8 GB total VRAM at 16K context, ~42 tok/s). For 24B–32B models on 16GB VRAM, enable quantized KV-cache (<span class="font-mono">--cache-type-k q8_0</span>) or select <span class="font-mono">IQ3_M</span>.
+          </li>
+        </ul>
+      </aside>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ quantPresets: QUANTIZATION_PRESETS }}>
+    (function () {
+      // 1. Mode Tab Switching
+      var modeTabs = document.querySelectorAll('[data-calc-tab]');
+      var panels = {
+        vram: document.getElementById('calc-panel-vram'),
+        api: document.getElementById('calc-panel-api'),
+        directory: document.getElementById('calc-panel-directory'),
+      };
+
+      modeTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var target = tab.getAttribute('data-calc-tab') || 'vram';
+          modeTabs.forEach(function (t) {
+            var active = t === tab;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+          Object.keys(panels).forEach(function (k) {
+            if (panels[k]) {
+              panels[k].style.display = k === target ? 'block' : 'none';
+            }
+          });
+          if (window.tpTrack) {
+            window.tpTrack('model_calc_tab', { tab: target });
+          }
+        });
+      });
+
+      // 2. Local GPU VRAM Calculator Logic
+      var gpuSelect = document.getElementById('vram-gpu-select');
+      var vramRange = document.getElementById('vram-gb-range');
+      var vramDisplay = document.getElementById('vram-gb-display');
+      var quantSelect = document.getElementById('vram-quant-select');
+      var ctxSelect = document.getElementById('vram-ctx-select');
+      var gpuPresetBtns = document.querySelectorAll('[data-gpu-preset]');
+      var activeGpuNote = document.getElementById('active-gpu-note');
+      var activeBwLabel = document.getElementById('active-bw-label');
+      var vramRows = document.querySelectorAll('[data-vram-row]');
+
+      var currentBandwidth = 448;
+
+      function getQuant(id) {
+        for (var i = 0; i < quantPresets.length; i++) {
+          if (quantPresets[i].id === id) return quantPresets[i];
+        }
+        return quantPresets[3];
+      }
+
+      function updateVramTable() {
+        var gpuVram = parseFloat(vramRange ? vramRange.value : '16') || 16;
+        var quantId = quantSelect ? quantSelect.value : 'q4_k_m';
+        var ctxTokens = parseInt(ctxSelect ? ctxSelect.value : '16384', 10) || 16384;
+        var quant = getQuant(quantId);
+
+        if (vramDisplay) vramDisplay.textContent = gpuVram + ' GB';
+        if (activeBwLabel) activeBwLabel.textContent = 'Memory Bandwidth: ' + currentBandwidth + ' GB/s';
+
+        vramRows.forEach(function (row) {
+          var totalB = parseFloat(row.getAttribute('data-total-b') || '0');
+          var activeB = parseFloat(row.getAttribute('data-active-b') || String(totalB));
+          var kvFp16 = parseFloat(row.getAttribute('data-kv-fp16') || '0.15');
+
+          var weightsGb = totalB * quant.bytesPerParam;
+          var kvGb = (ctxTokens / 1024) * kvFp16 * quant.kvScale;
+          var overheadGb = 0.65 + Math.min(1.5, totalB * 0.012);
+          var totalGb = weightsGb + kvGb + overheadGb;
+          var pct = gpuVram > 0 ? Math.round((totalGb / gpuVram) * 100) : 999;
+
+          var status = 'multi-gpu';
+          var statusLabel = 'REQUIRES MULTI-GPU';
+          if (totalGb <= gpuVram * 0.88) {
+            status = 'fits';
+            statusLabel = 'FITS IN VRAM';
+          } else if (totalGb <= gpuVram * 1.02) {
+            status = 'tight';
+            statusLabel = 'TIGHT FIT (Q8 KV)';
+          }
+
+          var activeWeightsGb = Math.max(0.5, activeB * quant.bytesPerParam);
+          var kvPenalty = Math.min(activeWeightsGb * 0.35, kvGb * 0.25);
+          var eff = status === 'fits' ? 0.66 : status === 'tight' ? 0.48 : 0.14;
+          var tokSec = Math.max(1, Math.round((currentBandwidth * eff) / (activeWeightsGb + kvPenalty)));
+
+          var cellWeights = row.querySelector('[data-cell-weights]');
+          var cellKv = row.querySelector('[data-cell-kv]');
+          var cellTotal = row.querySelector('[data-cell-total]');
+          var cellBar = row.querySelector('[data-cell-bar]');
+          var cellStatus = row.querySelector('[data-cell-status]');
+          var cellSpeed = row.querySelector('[data-cell-speed]');
+
+          if (cellWeights) cellWeights.textContent = weightsGb.toFixed(1) + ' GB';
+          if (cellKv) cellKv.textContent = (kvGb + overheadGb).toFixed(1) + ' GB';
+          if (cellTotal) {
+            cellTotal.innerHTML =
+              totalGb.toFixed(1) +
+              ' GB <span style="font-weight:400; font-size:0.75rem; color:var(--ink-muted);">(' +
+              pct +
+              '%)</span>';
+          }
+          if (cellBar) {
+            cellBar.style.width = Math.min(100, Math.max(4, pct)) + '%';
+            cellBar.className = 'vram-bar-fill fit-' + status;
+          }
+          if (cellStatus) {
+            cellStatus.textContent = statusLabel;
+            cellStatus.className = 'fit-badge fit-' + status;
+          }
+          if (cellSpeed) {
+            cellSpeed.textContent = '~' + tokSec + ' tok/s';
+          }
+        });
+      }
+
+      gpuPresetBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var presetId = btn.getAttribute('data-gpu-preset');
+          var vram = btn.getAttribute('data-vram') || '16';
+          var bw = parseFloat(btn.getAttribute('data-bw') || '448');
+          var notes = btn.getAttribute('data-notes') || '';
+
+          gpuPresetBtns.forEach(function (b) {
+            var isAct = b === btn;
+            b.classList.toggle('active', isAct);
+            b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+          });
+
+          if (gpuSelect && presetId) gpuSelect.value = presetId;
+          if (vramRange) vramRange.value = vram;
+          currentBandwidth = bw;
+          if (activeGpuNote && notes) activeGpuNote.textContent = notes;
+          updateVramTable();
+
+          if (window.tpTrack) {
+            window.tpTrack('model_calc_gpu_preset', { gpu: presetId, vram_gb: vram });
+          }
+        });
+      });
+
+      if (gpuSelect) {
+        gpuSelect.addEventListener('change', function () {
+          var opt = gpuSelect.options[gpuSelect.selectedIndex];
+          if (!opt) return;
+          var vram = opt.getAttribute('data-vram') || '16';
+          var bw = parseFloat(opt.getAttribute('data-bw') || '448');
+          var notes = opt.getAttribute('data-notes') || '';
+
+          if (gpuSelect.value !== 'custom' && vramRange) {
+            vramRange.value = vram;
+          }
+          currentBandwidth = bw;
+          if (activeGpuNote && notes) activeGpuNote.textContent = notes;
+
+          gpuPresetBtns.forEach(function (b) {
+            var isAct = b.getAttribute('data-gpu-preset') === gpuSelect.value;
+            b.classList.toggle('active', isAct);
+            b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
+          });
+          updateVramTable();
+        });
+      }
+
+      if (vramRange) {
+        vramRange.addEventListener('input', function () {
+          if (gpuSelect) gpuSelect.value = 'custom';
+          gpuPresetBtns.forEach(function (b) {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          updateVramTable();
+        });
+      }
+
+      if (quantSelect) quantSelect.addEventListener('change', updateVramTable);
+      if (ctxSelect) ctxSelect.addEventListener('change', updateVramTable);
+
+      // Copy CLI command buttons
+      document.querySelectorAll('[data-copy-cli]').forEach(function (btn) {
+        var origText = btn.innerHTML;
+        btn.addEventListener('click', function () {
+          var cmd = btn.getAttribute('data-copy-cli') || '';
+          if (navigator.clipboard && cmd) {
+            navigator.clipboard.writeText(cmd);
+            btn.textContent = '✓ Copied';
+            setTimeout(function () {
+              btn.innerHTML = origText;
+            }, 1400);
+            if (window.tpTrack) {
+              window.tpTrack('model_cli_copy', { command: cmd.slice(0, 60) });
+            }
+          }
+        });
+      });
+
+      // 3. API Token Cost Calculator Logic
+      var reqInput = document.getElementById('api-req-day');
+      var inTokensInput = document.getElementById('api-input-tokens');
+      var outTokensInput = document.getElementById('api-output-tokens');
+      var cacheInput = document.getElementById('api-cache-rate');
+
+      var reqDisplay = document.getElementById('api-req-display');
+      var inDisplay = document.getElementById('api-in-display');
+      var outDisplay = document.getElementById('api-out-display');
+      var cacheDisplay = document.getElementById('api-cache-display');
+
+      var apiRows = document.querySelectorAll('[data-api-row]');
+      var workloadBtns = document.querySelectorAll('[data-workload-preset]');
+
+      function updateApiTable() {
+        var reqPerDay = Math.max(1, parseFloat(reqInput ? reqInput.value : '1500') || 1500);
+        var inTok = Math.max(0, parseFloat(inTokensInput ? inTokensInput.value : '24000') || 24000);
+        var outTok = Math.max(0, parseFloat(outTokensInput ? outTokensInput.value : '1500') || 1500);
+        var cachePct = Math.min(95, Math.max(0, parseFloat(cacheInput ? cacheInput.value : '65') || 0));
+
+        if (reqDisplay) reqDisplay.textContent = reqPerDay.toLocaleString('en-US') + ' / day';
+        if (inDisplay) inDisplay.textContent = inTok.toLocaleString('en-US') + ' tok';
+        if (outDisplay) outDisplay.textContent = outTok.toLocaleString('en-US') + ' tok';
+        if (cacheDisplay) cacheDisplay.textContent = cachePct + '%';
+
+        var cacheRatio = cachePct / 100;
+        var uncachedInM = (inTok * (1 - cacheRatio)) / 1000000;
+        var cachedInM = (inTok * cacheRatio) / 1000000;
+        var outM = outTok / 1000000;
+
+        apiRows.forEach(function (row) {
+          var inPrice = parseFloat(row.getAttribute('data-input-price') || '0');
+          var cachedPrice = parseFloat(row.getAttribute('data-cached-price') || '0');
+          var outPrice = parseFloat(row.getAttribute('data-output-price') || '0');
+          var maxCtx = parseInt(row.getAttribute('data-max-ctx') || '128000', 10);
+
+          var perReq = uncachedInM * inPrice + cachedInM * cachedPrice + outM * outPrice;
+          var per1k = perReq * 1000;
+          var monthly = perReq * reqPerDay * 30;
+
+          var cell1k = row.querySelector('[data-cell-1k]');
+          var cellMonthly = row.querySelector('[data-cell-monthly]');
+
+          if (cell1k) cell1k.textContent = '$' + per1k.toFixed(2);
+          if (cellMonthly) {
+            if (inTok > maxCtx) {
+              cellMonthly.innerHTML =
+                '<span style="color:var(--crit-text); font-size:0.75rem;">Exceeds ' +
+                Math.round(maxCtx / 1000) +
+                'K ctx</span>';
+            } else {
+              cellMonthly.textContent =
+                '$' +
+                monthly.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }) +
+                '/mo';
+            }
+          }
+        });
+      }
+
+      workloadBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          workloadBtns.forEach(function (b) {
+            b.classList.toggle('active', b === btn);
+          });
+          if (reqInput) reqInput.value = btn.getAttribute('data-req') || '1500';
+          if (inTokensInput) inTokensInput.value = btn.getAttribute('data-in') || '24000';
+          if (outTokensInput) outTokensInput.value = btn.getAttribute('data-out') || '1500';
+          if (cacheInput) cacheInput.value = btn.getAttribute('data-cache') || '65';
+          updateApiTable();
+        });
+      });
+
+      [reqInput, inTokensInput, outTokensInput, cacheInput].forEach(function (el) {
+        if (el) el.addEventListener('input', updateApiTable);
+      });
+    })();
+  </script>
+</BaseLayout>
