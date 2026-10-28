@@ -26,6 +26,33 @@ const cveRecords = [
     slug: 'nodejs-october-2026-brotli-rce-cve-2026-111497',
   },
   {
+    id: 'CVE-2026-112346',
+    component: 'OpenHands Agent Runtime Command Injection',
+    severity: 'CRITICAL',
+    cvss: '9.8',
+    affected: 'OpenHands < 0.34.2',
+    patched: 'OpenHands v0.34.2',
+    slug: 'ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s',
+  },
+  {
+    id: 'CVE-2026-97631',
+    component: 'TianoCore EDK II UEFI PXE Base Code Driver',
+    severity: 'CRITICAL',
+    cvss: '9.5',
+    affected: 'EDK II NetworkPkg/UefiPxeBcDxe (PXE enabled)',
+    patched: 'EDK II Upstream Fix / Vendor UEFI Updates',
+    slug: 'uefi-edk2-pxe-cve-2026-97631-boot-firmware',
+  },
+  {
+    id: 'CVE-2026-93328',
+    component: 'Google GenAI MCP Toolbox Credential Leak',
+    severity: 'CRITICAL',
+    cvss: '9.3',
+    affected: 'genai-toolbox < 0.8.4',
+    patched: 'genai-toolbox v0.8.4',
+    slug: 'ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s',
+  },
+  {
     id: 'CVE-2026-109618',
     component: 'PHP SAPI Multipart Parser (php2shell)',
     severity: 'CRITICAL',
@@ -44,6 +71,15 @@ const cveRecords = [
     slug: 'bun-v1-4-4-http3-qpack-brotli-emudhra-security',
   },
   {
+    id: 'CVE-2026-108142',
+    component: 'Veeam Backup & Replication 13 CDP Coordinator',
+    severity: 'CRITICAL',
+    cvss: '9.1',
+    affected: 'B&R 13.1 <= 13.1.1.18, 13.0 <= 13.0.2.29',
+    patched: 'B&R 13.1.2 (13.1.2.57), 13.0.3 (13.0.3.63)',
+    slug: 'veeam-backup-replication-13-cve-2026-108142',
+  },
+  {
     id: 'CVE-2026-91403',
     component: 'Oracle Java SE / GraalVM JSSE TLS',
     severity: 'CRITICAL',
@@ -51,6 +87,24 @@ const cveRecords = [
     affected: 'JDK 8u431, 11.0.25, 17.0.13, 21.0.5, 25.0.1',
     patched: 'Oracle Out-of-Band Security Alert Patch',
     slug: 'oracle-java-jsse-cve-2026-91403-out-of-band-alert',
+  },
+  {
+    id: 'CVE-2026-106076',
+    component: 'Veeam Backup for Microsoft 365 Cross-Tenant SQLi',
+    severity: 'CRITICAL',
+    cvss: '9.0',
+    affected: 'Backup for Microsoft 365 < 8.6 P1',
+    patched: 'Backup for Microsoft 365 8.6 P1 (8.6.0.5011)',
+    slug: 'veeam-backup-replication-13-cve-2026-108142',
+  },
+  {
+    id: 'CVE-2026-110720',
+    component: 'HashiCorp consul-k8s Webhook Auth Bypass',
+    severity: 'HIGH',
+    cvss: '8.8',
+    affected: 'consul-k8s 1.4.x – 1.6.x',
+    patched: 'consul-k8s 1.6.3, 1.5.5, 1.4.8',
+    slug: 'ai-agent-infra-cves-openhands-mcp-toolbox-consul-k8s',
   },
   {
     id: 'CVE-2026-111500',
@@ -105,7 +159,7 @@ const securityPageSchema = {
   '@id': `${SITE}/security#collection`,
   name: 'CVE & Vulnerability Advisory Index — TechPulse',
   description:
-    'Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS v3.1 scores, affected branches, and patched runtime releases across Node.js, Bun, PHP, Java SE, and AI infrastructure.',
+    'Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS scores, affected branches, and patched runtime releases across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and AI infrastructure.',
   url: `${SITE}/security`,
   isPartOf: { '@id': `${SITE}/#website` },
   mainEntity: {
@@ -143,15 +197,15 @@ const breadcrumbSchema = {
 
 <BaseLayout
   title="CVE & Vulnerability Advisory Index (October 2026) — TechPulse"
-  description="Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS v3.1 scores, affected branches, and patched releases across Node.js, Bun, PHP, Java SE, and AI infrastructure."
+  description="Structured index of active Common Vulnerabilities and Exposures (CVE), CVSS scores, affected branches, and patched releases across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and AI infrastructure."
   activeNav="cve-matrix"
   canonicalPath="/security"
   ogImage={securityArticles[0]?.data.coverImage}
   ogImageAlt="TechPulse CVE & Vulnerability Advisory Index"
   jsonLd={[securityPageSchema, breadcrumbSchema]}
 >
-  <div class="container-wide" style="padding-top:44px; padding-bottom:64px;">
-    <header style="max-width:680px; margin-bottom:36px;">
+  <div class="container-wide page-shell-wide">
+    <header class="section-header-block">
       <nav class="breadcrumb-nav" aria-label="Breadcrumb">
         <ol class="breadcrumb-list">
           <li>
@@ -169,51 +223,48 @@ const breadcrumbSchema = {
         <span>·</span>
         <span>October 2026</span>
       </div>
-      <h1
-        class="font-serif"
-        style="font-size:clamp(2rem, 3.6vw, 2.5rem); font-weight:600; letter-spacing:-0.025em; line-height:1.15; margin:0 0 12px 0;"
-      >
+      <h1 class="section-display-title">
         Vulnerability &amp; Advisory Index
       </h1>
-      <p style="font-size:1.05rem; color:var(--ink-secondary); line-height:1.55; margin:0;">
-        Verified Common Vulnerabilities and Exposures across server runtimes, language toolchains, and enterprise cryptography stacks, indexed with affected branches and upstream patch releases.
+      <p class="section-lead-copy">
+        Verified Common Vulnerabilities and Exposures across server runtimes, language toolchains, boot firmware, and enterprise backup stacks, indexed with affected branches and upstream patch releases.
       </p>
     </header>
 
     <!-- Minimal Filter Tabs -->
-    <div class="category-tabs" style="margin-bottom:8px;">
-      <button type="button" class="cat-tab active" data-sev-filter="ALL">
+    <div class="category-tabs" role="tablist" aria-label="Filter advisories by severity" style="margin-bottom:8px;">
+      <button type="button" role="tab" aria-selected="true" class="cat-tab active" data-sev-filter="ALL">
         All Advisories ({cveRecords.length})
       </button>
-      <button type="button" class="cat-tab" data-sev-filter="CRITICAL">
+      <button type="button" role="tab" aria-selected="false" class="cat-tab" data-sev-filter="CRITICAL">
         Critical (CVSS ≥ 9.0)
       </button>
-      <button type="button" class="cat-tab" data-sev-filter="HIGH">
+      <button type="button" role="tab" aria-selected="false" class="cat-tab" data-sev-filter="HIGH">
         High (7.0 – 8.9)
       </button>
-      <button type="button" class="cat-tab" data-sev-filter="MEDIUM">
+      <button type="button" role="tab" aria-selected="false" class="cat-tab" data-sev-filter="MEDIUM">
         Medium
       </button>
     </div>
 
     <!-- Clean Technical Specification Table -->
-    <div class="cve-table-wrap" style="margin-bottom:56px;">
+    <div class="cve-table-wrap">
       <table class="cve-spec-table">
         <thead>
           <tr>
-            <th>Identifier</th>
-            <th>Component / Vector</th>
-            <th>Severity</th>
-            <th>Affected Branches</th>
-            <th>Patched Release</th>
-            <th style="text-align:right;">Analysis</th>
+            <th scope="col">Identifier</th>
+            <th scope="col">Component / Vector</th>
+            <th scope="col">Severity</th>
+            <th scope="col">Affected Branches</th>
+            <th scope="col">Patched Release</th>
+            <th scope="col">Analysis</th>
           </tr>
         </thead>
         <tbody id="cve-table-body">
           {cveRecords.map((row) => (
             <tr data-row-sev={row.severity}>
-              <td class="font-mono" style="font-weight:500; font-size:0.8125rem; white-space:nowrap;">
-                <a href={`/articles/${row.slug}`} style="text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--hairline-strong);">
+              <td>
+                <a href={`/articles/${row.slug}`} class="cve-id-link">
                   {row.id}
                 </a>
               </td>
@@ -229,11 +280,8 @@ const breadcrumbSchema = {
               <td class="font-mono" style="font-size:0.78rem; color:var(--ink);">
                 {row.patched}
               </td>
-              <td style="text-align:right; white-space:nowrap;">
-                <a
-                  href={`/articles/${row.slug}`}
-                  style="font-size:0.8125rem; color:var(--ink-secondary); text-decoration:underline; text-underline-offset:3px;"
-                >
+              <td>
+                <a href={`/articles/${row.slug}`} class="cve-read-link">
                   Read →
                 </a>
               </td>
@@ -267,7 +315,9 @@ const breadcrumbSchema = {
         btn.addEventListener('click', function () {
           var sev = btn.getAttribute('data-sev-filter');
           btns.forEach(function (b) {
-            b.classList.toggle('active', b === btn);
+            var isSel = b === btn;
+            b.classList.toggle('active', isSel);
+            b.setAttribute('aria-selected', isSel ? 'true' : 'false');
           });
           rows.forEach(function (row) {
             var rSev = row.getAttribute('data-row-sev');

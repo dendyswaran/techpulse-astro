@@ -17,7 +17,7 @@ export async function getStaticPaths() {
       slug: 'security',
       title: 'Security & Advisories',
       seoTitle: 'Security Advisories, Zero-Day Exploits & CVE Analysis — TechPulse',
-      desc: 'Technical post-mortems of zero-day exploits, CVE disclosures, cryptographic flaws, and emergency runtime patches across Node.js, Bun, PHP, Java, and AI infrastructure.',
+      desc: 'Technical post-mortems of zero-day exploits, CVE disclosures, cryptographic flaws, and emergency runtime patches across Node.js, Bun, PHP, Java, UEFI, Veeam, and AI infrastructure.',
     },
     {
       slug: 'tech-update',
@@ -29,7 +29,7 @@ export async function getStaticPaths() {
       slug: 'tech-news',
       title: 'Industry & Infrastructure',
       seoTitle: 'Enterprise AI Deployment, Governance & Cloud Infrastructure — TechPulse',
-      desc: 'Production AI agent rollouts across federal agencies and retail, autonomous safety evaluations, UK AISI & FTC oversight, and cloud infrastructure policy.',
+      desc: 'Frontier AI S-1 filings, production agent rollouts across federal agencies and retail, autonomous safety evaluations, and cloud infrastructure policy.',
     },
   ];
 
@@ -110,8 +110,8 @@ const breadcrumbSchema = {
   preloadImage={articles[0]?.data.coverImage}
   jsonLd={[collectionPageSchema, breadcrumbSchema]}
 >
-  <div class="container-reading" style="padding-top:44px; padding-bottom:64px;">
-    <header style="padding-bottom:28px; border-bottom:1px solid var(--hairline);">
+  <div class="container-reading page-shell-reading">
+    <header class="category-header-block">
       <nav class="breadcrumb-nav" aria-label="Breadcrumb">
         <ol class="breadcrumb-list">
           <li>
@@ -124,13 +124,10 @@ const breadcrumbSchema = {
         </ol>
       </nav>
 
-      <h1
-        class="font-serif"
-        style="font-size:clamp(2rem, 3.5vw, 2.4rem); font-weight:600; letter-spacing:-0.025em; margin:0 0 10px 0;"
-      >
+      <h1 class="section-display-title">
         {categoryTitle}
       </h1>
-      <p style="font-size:1.02rem; color:var(--ink-secondary); margin:0; line-height:1.55;">
+      <p class="section-lead-copy">
         {categoryDesc}
       </p>
     </header>

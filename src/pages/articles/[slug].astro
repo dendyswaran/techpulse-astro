@@ -240,7 +240,7 @@ const breadcrumbSchema = {
             title="Save to reading list"
             aria-label="Bookmark article"
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
           </button>
@@ -252,7 +252,7 @@ const breadcrumbSchema = {
             title="Copy article link"
             aria-label="Copy article link"
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
             </svg>
@@ -280,7 +280,7 @@ const breadcrumbSchema = {
       )}
     </header>
 
-    <!-- Editorial Abstract / Margin Rule (The Brief) -->
+    <!-- Editorial Abstract Frame (The Brief — Hairline Top/Bottom, No Side-Stripe) -->
     {tldr && tldr.length > 0 && (
       <aside class="editorial-brief" aria-label="The Brief">
         <div class="editorial-brief-label">The Brief</div>
@@ -381,7 +381,7 @@ const breadcrumbSchema = {
 
     <!-- Further Reading -->
     {relatedArticles.length > 0 && (
-      <section style="margin-top:48px; padding-top:32px; border-top:1px solid var(--hairline);">
+      <section class="related-section">
         <h2 class="sources-heading" style="margin-bottom:4px;">
           More in {categoryLabel[category] || category}
         </h2>
