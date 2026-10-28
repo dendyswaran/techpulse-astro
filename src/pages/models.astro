@@ -41,7 +41,7 @@ const faqSchema = {
       name: 'Which open-weight LLMs fit on an NVIDIA RTX 5060 Ti 16GB GPU?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'An NVIDIA RTX 5060 Ti (16 GB GDDR7, 448 GB/s) comfortably runs Qwen 3.5 14B Instruct in Q4_K_M (~10.8 GB total VRAM with 16K context at ~42 tok/s) or Q5_K_M (~12.3 GB), Mistral Small 3.2 24B in Q4_K_M (~15.6 GB at 8K context), and Qwen 3.5 32B Coder in IQ3_M (~15.4 GB).',
+        text: 'An NVIDIA RTX 5060 Ti (16 GB GDDR7, 448 GB/s) comfortably runs Qwen 3.5 14B Instruct in Q4_K_M (~10.8 GB total VRAM with 16K context at ~32–42 tok/s) or Q5_K_M (~12.3 GB), Mistral Small 3.2 24B in Q4_K_M (~16.2 GB at 16K context or ~15.6 GB at 8K context), and Qwen 3.5 32B Coder in IQ3_M (~15.9 GB).',
       },
     },
     {
@@ -62,6 +62,25 @@ const faqSchema = {
     },
   ],
 };
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: `${SITE}/`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Models & GPU VRAM Calculator',
+      item: `${SITE}/models`,
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -69,14 +88,33 @@ const faqSchema = {
   description="Interactive token cost & monthly API spend calculator for GPT-6.1 Terra, Claude Duet, Mirendil Fern 10M, and Kimi K3.1 Pro, plus local GPU VRAM & tok/s sizing for NVIDIA RTX 5060 Ti 16GB, RTX 4090, RTX 5090, and H100."
   activeNav="models"
   canonicalPath="/models"
-  jsonLd={[modelsCollectionSchema, faqSchema]}
+  jsonLd={[modelsCollectionSchema, faqSchema, breadcrumbSchema]}
 >
-  <div class="container-wide">
-    <header class="archive-header">
-      <div class="archive-kicker">Interactive Engineering Ledger · Updated Oct 2026</div>
-      <h1 class="archive-title">AI Model Pricing, Context &amp; GPU VRAM Calculator</h1>
-      <p class="archive-desc">
-        Compare monthly API token economics (including prompt caching discounts) across frontier models, or calculate exact local GPU VRAM footprints, KV-cache overhead, and generation speeds (<span class="font-mono">tok/s</span>) on hardware from an <strong>NVIDIA RTX 5060 Ti 16GB</strong> to an <strong>8× H200</strong> node.
+  <div class="container-wide page-shell-wide">
+    <header class="section-header-block">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li>
+            <a href="/">Home</a>
+            <span class="breadcrumb-sep">/</span>
+          </li>
+          <li>
+            <span class="breadcrumb-current" aria-current="page">Models &amp; GPU VRAM Calculator</span>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="article-kicker">
+        <span>Interactive Engineering Ledger</span>
+        <span>·</span>
+        <span>October 2026</span>
+      </div>
+
+      <h1 class="section-display-title">
+        AI Model Pricing, Context &amp; GPU VRAM Calculator
+      </h1>
+      <p class="section-lead-copy">
+        Compare monthly API token economics (including prompt caching discounts) across frontier models, or calculate exact local GPU VRAM footprints, KV-cache overhead, and generation speeds (<span class="font-mono">tok/s</span>) on hardware from an <strong>NVIDIA RTX 5060 Ti 16GB</strong> to an <strong>8× H200</strong> cluster.
       </p>
     </header>
 
@@ -120,7 +158,7 @@ const faqSchema = {
            ================================================================= -->
       <div id="calc-panel-vram" role="tabpanel" aria-labelledby="tab-btn-vram">
         <!-- Quick Hardware Presets -->
-        <div class="calc-preset-strip" aria-label="Quick GPU Presets">
+        <div class="calc-preset-strip" role="group" aria-label="Quick GPU Presets">
           <span class="calc-preset-label">Hardware Preset:</span>
           {GPU_PRESETS.map((gpu, idx) => (
             <button
@@ -198,28 +236,28 @@ const faqSchema = {
           </div>
         </div>
 
-        <div class="gpu-note-banner">
+        <div class="gpu-note-banner" aria-live="polite">
           <div>
-            <strong style="color:var(--ink);">Active Hardware Note:</strong>{' '}
+            <strong>Active Hardware Note:</strong>{' '}
             <span id="active-gpu-note">{defaultGpu.notes}</span>
           </div>
-          <span class="font-mono" style="font-size:0.75rem; color:var(--ink-muted);" id="active-bw-label">
+          <span class="gpu-bw-meta" id="active-bw-label">
             Memory Bandwidth: {defaultGpu.bandwidthGbs} GB/s
           </span>
         </div>
 
         <div class="cve-table-wrap">
-          <table class="cve-ledger-table" id="vram-results-table">
+          <table class="cve-spec-table" id="vram-results-table">
             <thead>
               <tr>
-                <th>Open-Weight Model</th>
-                <th>Params (Total / Active)</th>
-                <th>Weights VRAM</th>
-                <th>KV-Cache + Runtime</th>
-                <th>Total VRAM Required</th>
-                <th>Hardware Fit Status</th>
-                <th>Est. Speed</th>
-                <th>Local CLI Command</th>
+                <th scope="col">Open-Weight Model</th>
+                <th scope="col">Params (Total / Active)</th>
+                <th scope="col" class="num-col">Weights VRAM</th>
+                <th scope="col" class="num-col">KV + Runtime</th>
+                <th scope="col" class="num-col">Total VRAM</th>
+                <th scope="col">Hardware Fit</th>
+                <th scope="col" class="num-col">Est. Speed</th>
+                <th scope="col">Local CLI</th>
               </tr>
             </thead>
             <tbody>
@@ -241,26 +279,26 @@ const faqSchema = {
                     data-kv-fp16={model.kvCacheGbPer1kTokensFp16}
                   >
                     <td>
-                      <a href={`/models/${model.id}`} class="cve-article-link">
+                      <a href={`/models/${model.id}`} class="table-model-link">
                         {model.name}
                       </a>
-                      <div style="font-size:0.75rem; color:var(--ink-muted); margin-top:2px;">
+                      <div class="table-model-sub">
                         {model.provider} · {model.license}
                       </div>
                     </td>
-                    <td class="font-mono" style="font-size:0.78rem; color:var(--ink-secondary); white-space:nowrap;">
+                    <td class="table-params-cell">
                       {model.paramsLabel}
                     </td>
-                    <td class="font-mono" data-cell-weights style="font-weight:500;">
+                    <td class="num-col" data-cell-weights>
                       {est.weightsGb.toFixed(1)} GB
                     </td>
-                    <td class="font-mono" data-cell-kv style="color:var(--ink-secondary); font-size:0.8rem;">
+                    <td class="num-col" data-cell-kv>
                       {(est.kvCacheGb + est.overheadGb).toFixed(1)} GB
                     </td>
-                    <td>
-                      <div class="font-mono" data-cell-total style="font-weight:600; color:var(--ink);">
-                        {est.totalGb.toFixed(1)} GB{' '}
-                        <span style="font-weight:400; font-size:0.75rem; color:var(--ink-muted);" data-cell-pct>
+                    <td class="num-col">
+                      <div class="vram-cell-val" data-cell-total>
+                        {est.totalGb.toFixed(1)} GB
+                        <span class="vram-cell-pct" data-cell-pct>
                           ({est.utilizationPct}%)
                         </span>
                       </div>
@@ -277,7 +315,7 @@ const faqSchema = {
                         {est.statusLabel}
                       </span>
                     </td>
-                    <td class="font-mono" data-cell-speed style="font-weight:600; white-space:nowrap;">
+                    <td class="num-col" data-cell-speed>
                       ~{est.estimatedTokPerSec} tok/s
                     </td>
                     <td>
@@ -302,18 +340,18 @@ const faqSchema = {
            PANEL 2: API TOKEN PRICING & MONTHLY SPEND CALCULATOR
            ================================================================= -->
       <div id="calc-panel-api" role="tabpanel" aria-labelledby="tab-btn-api" style="display:none;">
-        <div class="calc-preset-strip" aria-label="Workload Presets">
+        <div class="calc-preset-strip" role="group" aria-label="Workload Presets">
           <span class="calc-preset-label">Workload Preset:</span>
-          <button type="button" class="calc-preset-btn" data-workload-preset="chat" data-req="1000" data-in="2000" data-out="600" data-cache="30">
+          <button type="button" class="calc-preset-btn" data-workload-preset="chat" data-req="1000" data-in="2000" data-out="600" data-cache="30" aria-pressed="false">
             2K Support / Chat (1K req/day)
           </button>
-          <button type="button" class="calc-preset-btn active" data-workload-preset="agent" data-req="1500" data-in="24000" data-out="1500" data-cache="65">
+          <button type="button" class="calc-preset-btn active" data-workload-preset="agent" data-req="1500" data-in="24000" data-out="1500" data-cache="65" aria-pressed="true">
             24K Coding Agent Loop (65% Cache)
           </button>
-          <button type="button" class="calc-preset-btn" data-workload-preset="repo" data-req="300" data-in="150000" data-out="2500" data-cache="80">
+          <button type="button" class="calc-preset-btn" data-workload-preset="repo" data-req="300" data-in="150000" data-out="2500" data-cache="80" aria-pressed="false">
             150K Repo Audit (80% Cache)
           </button>
-          <button type="button" class="calc-preset-btn" data-workload-preset="monorepo" data-req="50" data-in="1000000" data-out="4000" data-cache="85">
+          <button type="button" class="calc-preset-btn" data-workload-preset="monorepo" data-req="50" data-in="1000000" data-out="4000" data-cache="85" aria-pressed="false">
             1M Full Codebase Context (85% Cache)
           </button>
         </div>
@@ -385,22 +423,21 @@ const faqSchema = {
         </div>
 
         <div class="cve-table-wrap">
-          <table class="cve-ledger-table" id="api-results-table">
+          <table class="cve-spec-table" id="api-results-table">
             <thead>
               <tr>
-                <th>Model</th>
-                <th>Tier</th>
-                <th>Max Context</th>
-                <th>Input ($/1M)</th>
-                <th>Cached ($/1M)</th>
-                <th>Output ($/1M)</th>
-                <th>Cost / 1,000 Reqs</th>
-                <th>Est. Monthly Spend (30d)</th>
+                <th scope="col">Model</th>
+                <th scope="col">Tier</th>
+                <th scope="col">Max Context</th>
+                <th scope="col" class="num-col">Input ($/1M)</th>
+                <th scope="col" class="num-col">Cached ($/1M)</th>
+                <th scope="col" class="num-col">Output ($/1M)</th>
+                <th scope="col" class="num-col">Cost / 1K Reqs</th>
+                <th scope="col" class="num-col">Est. Monthly (30d)</th>
               </tr>
             </thead>
             <tbody>
               {AI_MODELS.map((model) => {
-                // Initial default: 1500 req/day, 24000 in, 1500 out, 65% cache
                 const uncachedInM = (24000 * 0.35) / 1000000;
                 const cachedInM = (24000 * 0.65) / 1000000;
                 const outM = 1500 / 1000000;
@@ -419,30 +456,30 @@ const faqSchema = {
                     data-max-ctx={model.contextTokens}
                   >
                     <td>
-                      <a href={`/models/${model.id}`} class="cve-article-link">
+                      <a href={`/models/${model.id}`} class="table-model-link">
                         {model.name}
                       </a>
-                      <div style="font-size:0.75rem; color:var(--ink-muted); margin-top:2px;">
+                      <div class="table-model-sub">
                         {model.provider}
                       </div>
                     </td>
                     <td>
-                      <span class="cve-sev-badge" style="font-size:0.68rem;">
+                      <span class="cve-sev-badge">
                         {model.tier === 'frontier-api' ? 'FRONTIER API' : 'OPEN-WEIGHT'}
                       </span>
                     </td>
-                    <td class="font-mono" style="font-size:0.78rem; color:var(--ink-secondary); white-space:nowrap;">
+                    <td class="table-params-cell">
                       {model.contextLabel}
                     </td>
-                    <td class="font-mono">${model.inputPricePer1M.toFixed(2)}</td>
-                    <td class="font-mono" style="color:var(--brand); font-weight:500;">
+                    <td class="num-col">${model.inputPricePer1M.toFixed(2)}</td>
+                    <td class="num-col table-cached-price">
                       ${model.cachedInputPricePer1M.toFixed(2)}
                     </td>
-                    <td class="font-mono">${model.outputPricePer1M.toFixed(2)}</td>
-                    <td class="font-mono" data-cell-1k style="font-weight:500;">
+                    <td class="num-col">${model.outputPricePer1M.toFixed(2)}</td>
+                    <td class="num-col" data-cell-1k>
                       ${per1kReq.toFixed(2)}
                     </td>
-                    <td class="font-mono" data-cell-monthly style="font-weight:700; color:var(--ink);">
+                    <td class="num-col table-monthly-cost" data-cell-monthly>
                       ${monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
                     </td>
                   </tr>
@@ -458,49 +495,52 @@ const faqSchema = {
            ================================================================= -->
       <div id="calc-panel-directory" role="tabpanel" aria-labelledby="tab-btn-directory" style="display:none;">
         <div class="cve-table-wrap">
-          <table class="cve-ledger-table">
+          <table class="cve-spec-table">
             <thead>
               <tr>
-                <th>Model</th>
-                <th>Architecture &amp; Parameters</th>
-                <th>Context Window</th>
-                <th>API Pricing (In / Cache / Out)</th>
-                <th>Recommended Hardware</th>
-                <th>Spec &amp; Dispatch</th>
+                <th scope="col">Model</th>
+                <th scope="col">Architecture &amp; Parameters</th>
+                <th scope="col">Context Window</th>
+                <th scope="col" class="num-col">API (In / Cache / Out)</th>
+                <th scope="col">Recommended Hardware</th>
+                <th scope="col">Spec &amp; Dispatch</th>
               </tr>
             </thead>
             <tbody>
               {AI_MODELS.map((model) => (
                 <tr>
                   <td>
-                    <a href={`/models/${model.id}`} class="cve-article-link">
+                    <a href={`/models/${model.id}`} class="table-model-link">
                       {model.name}
                     </a>
-                    <div style="font-size:0.75rem; color:var(--ink-muted); margin-top:2px;">
+                    <div class="table-model-sub">
                       {model.provider} · {model.license}
                     </div>
                   </td>
-                  <td style="font-size:0.8125rem; color:var(--ink-secondary);">
-                    <strong style="color:var(--ink); font-weight:500;">{model.paramsLabel}</strong>
-                    <div style="font-size:0.75rem; color:var(--ink-muted);">{model.architecture}</div>
+                  <td>
+                    <div class="table-arch-title">{model.paramsLabel}</div>
+                    <div class="table-model-sub">{model.architecture}</div>
                   </td>
-                  <td class="font-mono" style="font-size:0.78rem; white-space:nowrap;">
+                  <td class="table-params-cell">
                     {model.contextLabel}
                   </td>
-                  <td class="font-mono" style="font-size:0.78rem; white-space:nowrap;">
+                  <td class="num-col">
                     ${model.inputPricePer1M.toFixed(2)} / ${model.cachedInputPricePer1M.toFixed(2)} / ${model.outputPricePer1M.toFixed(2)}
                   </td>
-                  <td style="font-size:0.8rem; color:var(--ink-secondary);">
+                  <td class="table-params-cell">
                     {model.recommendedGpu}
                   </td>
-                  <td style="white-space:nowrap;">
-                    <a href={`/models/${model.id}`} class="cve-id-link" style="display:inline-block; margin-right:10px;">
-                      Datasheet →
+                  <td>
+                    <a href={`/models/${model.id}`} class="cve-id-link">
+                      Datasheet
                     </a>
                     {model.articleSlug && (
-                      <a href={`/articles/${model.articleSlug}`} style="font-size:0.75rem; color:var(--ink-muted); text-decoration:underline;">
-                        Dispatch
-                      </a>
+                      <>
+                        <span class="gpu-note-sep">·</span>
+                        <a href={`/articles/${model.articleSlug}`} class="cve-read-link">
+                          Article →
+                        </a>
+                      </>
                     )}
                   </td>
                 </tr>
@@ -512,22 +552,20 @@ const faqSchema = {
     </section>
 
     <!-- Editorial Engineering Notes & Methodology -->
-    <section class="container-reading" style="margin: 0; max-width: 760px;">
-      <aside class="editorial-brief" aria-label="VRAM Sizing Formula & Methodology">
-        <div class="editorial-brief-label">VRAM Sizing &amp; Bandwidth Methodology</div>
-        <ul>
-          <li>
-            <strong>Model Weights VRAM</strong>: Computed from total parameter count multiplied by effective bytes-per-parameter including block quantization metadata (<span class="font-mono">FP16 = 2.00 B/param</span>, <span class="font-mono">Q8_0 = 1.06 B/param</span>, <span class="font-mono">Q5_K_M = 0.70 B/param</span>, <span class="font-mono">Q4_K_M = 0.60 B/param</span>, <span class="font-mono">IQ3_M = 0.43 B/param</span>).
-          </li>
-          <li>
-            <strong>KV-Cache &amp; Context Scaling</strong>: Accounts for Grouped-Query Attention (GQA) on dense models and Multi-Head Latent Attention (MLA) on DeepSeek V3.2 and Kimi K3.1 Pro, plus CUDA/Metal compute buffer overhead (<span class="font-mono">0.65 GB – 2.15 GB</span>).
-          </li>
-          <li>
-            <strong>NVIDIA RTX 5060 Ti 16GB Recommendation</strong>: For 16GB GDDR7 cards (<span class="font-mono">448 GB/s</span>), <strong>Qwen 3.5 14B Instruct (`Q4_K_M` or `Q5_K_M`)</strong> is the daily-driver sweet spot (~10.8 GB total VRAM at 16K context, ~42 tok/s). For 24B–32B models on 16GB VRAM, enable quantized KV-cache (<span class="font-mono">--cache-type-k q8_0</span>) or select <span class="font-mono">IQ3_M</span>.
-          </li>
-        </ul>
-      </aside>
-    </section>
+    <aside class="editorial-brief" aria-label="VRAM Sizing Formula & Methodology">
+      <div class="editorial-brief-label">VRAM Sizing &amp; Bandwidth Methodology</div>
+      <ul>
+        <li>
+          <strong>Model Weights VRAM</strong>: Computed from total parameter count multiplied by effective bytes-per-parameter including block quantization metadata (<span class="font-mono">FP16 = 2.00 B/param</span>, <span class="font-mono">Q8_0 = 1.06 B/param</span>, <span class="font-mono">Q5_K_M = 0.70 B/param</span>, <span class="font-mono">Q4_K_M = 0.60 B/param</span>, <span class="font-mono">IQ3_M = 0.43 B/param</span>).
+        </li>
+        <li>
+          <strong>KV-Cache &amp; Context Scaling</strong>: Accounts for Grouped-Query Attention (GQA) on dense models and Multi-Head Latent Attention (MLA) on DeepSeek V3.2 and Kimi K3.1 Pro, plus CUDA/Metal compute buffer overhead (<span class="font-mono">0.65 GB – 2.15 GB</span>).
+        </li>
+        <li>
+          <strong>NVIDIA RTX 5060 Ti 16GB Recommendation</strong>: For 16GB GDDR7 cards (<span class="font-mono">448 GB/s</span>), <strong>Qwen 3.5 14B Instruct (`Q4_K_M` or `Q5_K_M`)</strong> is the daily-driver sweet spot (~10.8 GB total VRAM at 16K context, ~32–42 tok/s). For 24B–32B models on 16GB VRAM, enable quantized KV-cache (<span class="font-mono">--cache-type-k q8_0</span>) or select <span class="font-mono">IQ3_M</span>.
+        </li>
+      </ul>
+    </aside>
   </div>
 
   <script is:inline define:vars={{ quantPresets: QUANTIZATION_PRESETS }}>
@@ -626,7 +664,7 @@ const faqSchema = {
           if (cellTotal) {
             cellTotal.innerHTML =
               totalGb.toFixed(1) +
-              ' GB <span style="font-weight:400; font-size:0.75rem; color:var(--ink-muted);">(' +
+              ' GB <span class="vram-cell-pct">(' +
               pct +
               '%)</span>';
           }
@@ -771,7 +809,7 @@ const faqSchema = {
           if (cellMonthly) {
             if (inTok > maxCtx) {
               cellMonthly.innerHTML =
-                '<span style="color:var(--crit-text); font-size:0.75rem;">Exceeds ' +
+                '<span class="table-ctx-error">Exceeds ' +
                 Math.round(maxCtx / 1000) +
                 'K ctx</span>';
             } else {
@@ -790,7 +828,9 @@ const faqSchema = {
       workloadBtns.forEach(function (btn) {
         btn.addEventListener('click', function () {
           workloadBtns.forEach(function (b) {
-            b.classList.toggle('active', b === btn);
+            var isAct = b === btn;
+            b.classList.toggle('active', isAct);
+            b.setAttribute('aria-pressed', isAct ? 'true' : 'false');
           });
           if (reqInput) reqInput.value = btn.getAttribute('data-req') || '1500';
           if (inTokensInput) inTokensInput.value = btn.getAttribute('data-in') || '24000';

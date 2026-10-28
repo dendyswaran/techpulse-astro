@@ -148,7 +148,7 @@ const homeCollectionSchema = {
                 <a href={`/models/${m.id}`} class="advisory-ledger-row" title={`${m.name} (${m.contextLabel})`}>
                   <span class="ledger-id">{m.shortName}</span>
                   <span class="ledger-title">{m.contextLabel.replace(' tokens', '')}</span>
-                  <span class="ledger-score">${m.inputPricePer1M.toFixed(2)}</span>
+                  <span class="ledger-score ledger-score-neutral">${m.inputPricePer1M.toFixed(2)}/1M</span>
                 </a>
               ))}
             </div>

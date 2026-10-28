@@ -4,7 +4,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import {
   AI_MODELS,
   GPU_PRESETS,
-  QUANTIZATION_PRESETS,
   calculateVramAndSpeed,
   type AiModelRecord,
 } from '../../data/models';
@@ -177,13 +176,12 @@ const breadcrumbSchema = {
       </nav>
 
       <div class="cve-meta-header-row">
-        <span class="cve-id-badge">{model.provider}</span>
-        <span class="cve-sev-badge">
+        <span class="cve-id-badge font-mono">{model.provider}</span>
+        <span class="cve-sev-badge font-mono">
           {model.tier === 'open-weight' ? `OPEN-WEIGHT · ${model.license}` : 'FRONTIER API'}
         </span>
-        <span class="font-mono" style="font-size:0.78rem; color:var(--ink-muted);">
-          Context: {model.contextLabel}
-        </span>
+        <span class="cve-meta-dot">·</span>
+        <span class="font-mono">Context: {model.contextLabel}</span>
       </div>
 
       <h1 class="article-headline">{model.name}</h1>
@@ -211,7 +209,7 @@ const breadcrumbSchema = {
       <div class="spec-row">
         <div class="spec-key">API Pricing</div>
         <div class="spec-val">
-          Input: <strong>${model.inputPricePer1M.toFixed(2)} / 1M</strong> · Cached Input: <strong style="color:var(--brand);">${model.cachedInputPricePer1M.toFixed(2)} / 1M</strong> · Output: <strong>${model.outputPricePer1M.toFixed(2)} / 1M</strong>
+          Input: <strong>${model.inputPricePer1M.toFixed(2)} / 1M</strong> · Cached: <strong class="table-cached-price">${model.cachedInputPricePer1M.toFixed(2)} / 1M</strong> · Output: <strong>${model.outputPricePer1M.toFixed(2)} / 1M</strong>
         </div>
       </div>
       {model.isOpenWeight && q4Est && q8Est && fp16Est && (
@@ -228,13 +226,13 @@ const breadcrumbSchema = {
       </div>
     </section>
 
-    <!-- Interactive Per-Model Cost & VRAM Calculator -->
-    <section style="margin: 36px 0;">
-      <h2 class="sources-heading" style="margin-bottom:14px;">
-        Interactive Token Cost {model.isOpenWeight ? '& Local GPU VRAM ' : ''}Estimator for {model.shortName}
+    <!-- Interactive Per-Model Cost Estimator -->
+    <section class="calc-section-block" aria-label="Interactive Token Cost Estimator">
+      <h2 class="sources-heading">
+        Interactive Token Cost Estimator ({model.shortName})
       </h2>
 
-      <div class="calc-controls-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+      <div class="calc-controls-grid calc-controls-grid-3">
         <div class="calc-control-group">
           <div class="calc-label-row">
             <label class="calc-label" for="single-req-day">Requests / Day</label>
@@ -255,13 +253,13 @@ const breadcrumbSchema = {
         </div>
       </div>
 
-      <div class="gpu-note-banner" style="margin-top:-12px;">
+      <div class="gpu-note-banner" aria-live="polite">
         <div>
-          <span>Est. API Cost (0% Cache): <strong class="font-mono" id="single-cost-uncached" style="color:var(--ink);">--</strong>/mo</span>
-          <span style="margin: 0 10px; color:var(--hairline-strong);">|</span>
-          <span>With 70% Prompt Cache Hit: <strong class="font-mono" id="single-cost-cached" style="color:var(--brand);">--</strong>/mo</span>
+          <span>Est. API Cost (0% Cache): <strong class="font-mono" id="single-cost-uncached">--</strong>/mo</span>
+          <span class="gpu-note-sep">|</span>
+          <span>With 70% Prompt Cache: <strong class="font-mono table-cached-price" id="single-cost-cached">--</strong>/mo</span>
         </div>
-        <a href="/models" class="font-mono" style="font-size:0.75rem; text-decoration:underline;">
+        <a href="/models" class="cve-read-link">
           Compare all 12 models →
         </a>
       </div>
@@ -269,19 +267,19 @@ const breadcrumbSchema = {
 
     <!-- GPU Hardware Compatibility Matrix (for Open-Weight Models) -->
     {model.isOpenWeight && (
-      <section style="margin: 40px 0;">
-        <h2 class="sources-heading" style="margin-bottom:14px;">
+      <section class="calc-section-block" aria-label="GPU Hardware Compatibility Matrix">
+        <h2 class="sources-heading">
           GPU Hardware Compatibility Matrix ({model.shortName} at 16K Context)
         </h2>
-        <div class="cve-table-wrap" style="margin-bottom:20px;">
-          <table class="cve-ledger-table">
+        <div class="cve-table-wrap">
+          <table class="cve-spec-table">
             <thead>
               <tr>
-                <th>GPU / Hardware Profile</th>
-                <th>VRAM</th>
-                <th>Q4_K_M (4.8-bit)</th>
-                <th>Q8_0 (8-bit)</th>
-                <th>Est. Speed (Q4_K_M)</th>
+                <th scope="col">GPU / Hardware Profile</th>
+                <th scope="col" class="num-col">VRAM</th>
+                <th scope="col">Q4_K_M (4.8-bit)</th>
+                <th scope="col">Q8_0 (8-bit)</th>
+                <th scope="col" class="num-col">Est. Speed (Q4)</th>
               </tr>
             </thead>
             <tbody>
@@ -291,10 +289,10 @@ const breadcrumbSchema = {
                 return (
                   <tr>
                     <td>
-                      <strong style="color:var(--ink); font-weight:600; font-size:0.84rem;">{gpu.shortLabel}</strong>
-                      <div style="font-size:0.74rem; color:var(--ink-muted);">{gpu.bandwidthGbs} GB/s</div>
+                      <div class="table-arch-title">{gpu.shortLabel}</div>
+                      <div class="table-model-sub">{gpu.bandwidthGbs} GB/s</div>
                     </td>
-                    <td class="font-mono" style="font-weight:500;">{gpu.vramGb} GB</td>
+                    <td class="num-col">{gpu.vramGb} GB</td>
                     <td>
                       <span class={`fit-badge fit-${estQ4.status}`}>
                         {estQ4.statusLabel} ({estQ4.totalGb} GB)
@@ -305,7 +303,7 @@ const breadcrumbSchema = {
                         {estQ8.statusLabel} ({estQ8.totalGb} GB)
                       </span>
                     </td>
-                    <td class="font-mono" style="font-weight:600;">
+                    <td class="num-col">
                       ~{estQ4.estimatedTokPerSec} tok/s
                     </td>
                   </tr>
@@ -315,17 +313,17 @@ const breadcrumbSchema = {
           </table>
         </div>
 
-        <div class="editorial-brief" style="margin: 20px 0;">
+        <aside class="editorial-brief" aria-label="Quick Launch CLI Command">
           <div class="editorial-brief-label">Quick Launch CLI Command</div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-            <code class="font-mono" style="font-size:0.8125rem; color:var(--ink); word-break:break-all;">
+          <div class="cli-callout-row">
+            <code class="cli-code-inline">
               {model.localCliCommand}
             </code>
             <button type="button" class="cli-copy-btn" id="copy-model-cli-btn" data-cli={model.localCliCommand}>
               Copy Command
             </button>
           </div>
-        </div>
+        </aside>
       </section>
     )}
 
@@ -357,6 +355,11 @@ const breadcrumbSchema = {
       <section class="cve-deepdive-box" aria-label="TechPulse Editorial Analysis">
         <div class="editorial-brief-label">Full TechPulse Engineering Analysis</div>
         <a href={`/articles/${linkedArticle.slug}`} class="cve-deepdive-card">
+          <div class="cve-deepdive-content">
+            <h3 class="cve-deepdive-title">{linkedArticle.data.title}</h3>
+            <p class="cve-deepdive-sub">{linkedArticle.data.subtitle}</p>
+            <span class="cve-deepdive-cta">Read Full Technical Dispatch ({linkedArticle.data.readingTime}) →</span>
+          </div>
           {linkedArticle.data.coverImage && (
             <img
               src={linkedArticle.data.coverImage}
@@ -368,18 +371,13 @@ const breadcrumbSchema = {
               class="cve-deepdive-thumb"
             />
           )}
-          <div class="cve-deepdive-content">
-            <h3 class="cve-deepdive-title">{linkedArticle.data.title}</h3>
-            <p class="cve-deepdive-sub">{linkedArticle.data.subtitle}</p>
-            <span class="cve-deepdive-cta">Read Full Technical Dispatch →</span>
-          </div>
         </a>
       </section>
     )}
 
     <!-- Peer Models Ledger -->
     <section class="related-section">
-      <h2 class="sources-heading" style="margin-bottom:12px;">
+      <h2 class="sources-heading">
         Compare Other Frontier &amp; Open-Weight Models
       </h2>
       <div class="advisory-ledger">
@@ -387,7 +385,7 @@ const breadcrumbSchema = {
           <a href={`/models/${peer.id}`} class="advisory-ledger-row">
             <span class="ledger-id">{peer.shortName}</span>
             <span class="ledger-title">{peer.paramsLabel} · {peer.contextLabel}</span>
-            <span class="ledger-score">${peer.inputPricePer1M.toFixed(2)}/1M</span>
+            <span class="ledger-score ledger-score-neutral">${peer.inputPricePer1M.toFixed(2)}/1M</span>
           </a>
         ))}
       </div>
