@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getMergedCveRecords } from '../data/cves';
+import { AI_MODELS } from '../data/models';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -14,10 +15,11 @@ export const GET: APIRoute = async () => {
   const lines: string[] = [
     '# TechPulse — Systems, AI & Security Advisories',
     '',
-    '> TechPulse (https://www.techpulsenews.tech) is an independent technical publication covering software systems, frontier AI models, autonomous agent architectures, and critical runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and cloud-native infrastructure.',
+    '> TechPulse (https://www.techpulsenews.tech) is an independent technical publication covering software systems, frontier AI models, autonomous agent architectures, GPU VRAM sizing, and critical runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and cloud-native infrastructure.',
     '',
-    '## Primary Sections',
+    '## Primary Sections & Interactive Tools',
     `- [Home & Editorial Stream](${SITE}/): Full chronological feed of dispatches and advisories.`,
+    `- [AI Model Pricing, 10M Context & Local GPU VRAM Calculator](${SITE}/models): Interactive API token cost calculator & local GPU VRAM/speed estimator (NVIDIA RTX 5060 Ti 16GB, RTX 4090, RTX 5090, Apple M4 Max, H100).`,
     `- [CVE & Vulnerability Advisory Index](${SITE}/security): Structured matrix of active CVEs, CVSS scores, affected branches, and patched releases.`,
     `- [Artificial Intelligence](${SITE}/category/ai): Frontier models, agentic architectures, inference economics, and automated vulnerability discovery.`,
     `- [Security & Advisories](${SITE}/category/security): Zero-day exploits, CVE disclosures, cryptographic flaws, and runtime patches.`,
@@ -29,9 +31,19 @@ export const GET: APIRoute = async () => {
     `- Google News Sitemap: ${SITE}/news-sitemap.xml`,
     `- RSS 2.0 Feed: ${SITE}/rss.xml`,
     '',
-    '## Dedicated CVE Technical Datasheets (/cve/[id])',
+    '## AI Model Specifications, API Pricing & GPU VRAM Datasheets (/models/[id])',
     '',
   ];
+
+  for (const model of AI_MODELS) {
+    lines.push(
+      `- [${model.name} (${model.provider})](${SITE}/models/${model.id}): ${model.paramsLabel} | Context: ${model.contextLabel} | API: $${model.inputPricePer1M.toFixed(2)}/1M in ($${model.cachedInputPricePer1M.toFixed(2)} cached), $${model.outputPricePer1M.toFixed(2)}/1M out | Hardware: ${model.recommendedGpu}`
+    );
+  }
+
+  lines.push('');
+  lines.push('## Dedicated CVE Technical Datasheets (/cve/[id])');
+  lines.push('');
 
   for (const cve of cveRecords) {
     lines.push(

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getMergedCveRecords } from '../data/cves';
+import { AI_MODELS } from '../data/models';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -27,6 +28,7 @@ export const GET: APIRoute = async () => {
 
   const staticPages = [
     { path: '/', priority: '1.0', changefreq: 'hourly', lastmod: latestDate },
+    { path: '/models', priority: '0.95', changefreq: 'daily', lastmod: latestDate },
     { path: '/security', priority: '0.9', changefreq: 'daily', lastmod: latestDate },
     { path: '/category/ai', priority: '0.8', changefreq: 'daily', lastmod: latestDate },
     { path: '/category/security', priority: '0.8', changefreq: 'daily', lastmod: latestDate },
@@ -66,6 +68,17 @@ export const GET: APIRoute = async () => {
     })
     .join('\n');
 
+  const modelEntries = AI_MODELS.map((model) => {
+    const loc = `${SITE}/models/${model.id}`;
+    const lastmod = `${model.releaseDate}T00:00:00.000Z`;
+    return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>`;
+  }).join('\n');
+
   const cveEntries = cveRecords
     .map((cve) => {
       const loc = `${SITE}/cve/${cve.slugId}`;
@@ -86,6 +99,7 @@ export const GET: APIRoute = async () => {
 >
 ${staticEntries}
 ${articleEntries}
+${modelEntries}
 ${cveEntries}
 </urlset>`;
 

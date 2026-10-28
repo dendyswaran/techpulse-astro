@@ -296,6 +296,14 @@ const searchIndex = allArticles
           </button>
 
           <a
+            href="/models"
+            class:list={['util-link', { active: activeNav === 'models' }]}
+            aria-current={activeNav === 'models' ? 'page' : undefined}
+          >
+            Models &amp; VRAM
+          </a>
+
+          <a
             href="/security"
             class:list={['util-link', { active: activeNav === 'cve-matrix' }]}
             aria-current={activeNav === 'cve-matrix' ? 'page' : undefined}
@@ -352,6 +360,7 @@ const searchIndex = allArticles
           <a href="/category/security" class="util-link">Security</a>
           <a href="/category/tech-update" class="util-link">Systems</a>
           <a href="/category/tech-news" class="util-link">Industry</a>
+          <a href="/models" class="util-link">Models &amp; VRAM</a>
           <a href="/security" class="util-link">CVE Index</a>
           <a href="/rss.xml" class="util-link">RSS</a>
           <a href="/sitemap.xml" class="util-link">Sitemap</a>

@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import { CURATED_CVE_RECORDS } from '../data/cves';
+import { AI_MODELS } from '../data/models';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -11,6 +12,7 @@ const allArticles = (await getCollection('articles')).sort(
 );
 
 const advisoryLedger = CURATED_CVE_RECORDS.slice(0, 7);
+const modelLedger = AI_MODELS.slice(0, 6);
 
 const staffPicks = allArticles.filter((a) => a.data.featured).slice(0, 4);
 
@@ -93,7 +95,10 @@ const homeCollectionSchema = {
           <button type="button" role="tab" aria-selected="false" class="cat-tab" data-filter-cat="tech-news">
             Industry
           </button>
-          <a href="/security" class="cat-tab cat-tab-right">
+          <a href="/models" class="cat-tab cat-tab-right">
+            Models &amp; VRAM
+          </a>
+          <a href="/security" class="cat-tab">
             CVE Index
           </a>
         </div>
@@ -127,6 +132,23 @@ const homeCollectionSchema = {
                   <span class="ledger-id">{item.id}</span>
                   <span class="ledger-title">{item.shortLabel}</span>
                   <span class={`ledger-score severity-${item.severity}`}>{item.cvss}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <!-- Section 1B: AI Model Pricing & GPU VRAM Calculator Ledger -->
+          <section class="sidebar-section">
+            <h2 class="sidebar-heading">
+              <span>Models &amp; GPU VRAM</span>
+              <a href="/models" class="sidebar-heading-link">Calculator →</a>
+            </h2>
+            <div class="advisory-ledger">
+              {modelLedger.map((m) => (
+                <a href={`/models/${m.id}`} class="advisory-ledger-row" title={`${m.name} (${m.contextLabel})`}>
+                  <span class="ledger-id">{m.shortName}</span>
+                  <span class="ledger-title">{m.contextLabel.replace(' tokens', '')}</span>
+                  <span class="ledger-score">${m.inputPricePer1M.toFixed(2)}</span>
                 </a>
               ))}
             </div>
