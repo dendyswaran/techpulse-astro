@@ -13,6 +13,7 @@ const KEY_LOCATION = `${SITE}/${KEY}.txt`;
 function collectCanonicalUrls() {
   const urls = new Set([
     `${SITE}/`,
+    `${SITE}/models`,
     `${SITE}/security`,
     `${SITE}/category/ai`,
     `${SITE}/category/security`,
@@ -57,6 +58,18 @@ function collectCanonicalUrls() {
     }
   }
 
+  // 3. Collect all AI model IDs from src/data/models.ts
+  const modelsTsPath = path.join(rootDir, 'src', 'data', 'models.ts');
+  if (fs.existsSync(modelsTsPath)) {
+    const rawModels = fs.readFileSync(modelsTsPath, 'utf8');
+    const modelsBlock = rawModels.split('export const AI_MODELS')[1] || '';
+    const idRegex = /\bid:\s*'([^']+)'/g;
+    let m;
+    while ((m = idRegex.exec(modelsBlock)) !== null) {
+      urls.add(`${SITE}/models/${m[1]}`);
+    }
+  }
+
   return Array.from(urls);
 }
 
@@ -85,7 +98,7 @@ async function main() {
     console.log(`[IndexNow] Response Body: ${bodyText}`);
   }
   console.log(`[IndexNow] Key Location: ${KEY_LOCATION}`);
-  console.log(`[IndexNow] Sample URLs submitted:\n  - ${urlList.slice(0, 8).join('\n  - ')}`);
+  console.log(`[IndexNow] Sample URLs submitted:\n  - ${urlList.slice(0, 10).join('\n  - ')}`);
 
   if (!res.ok && res.status !== 202) {
     process.exitCode = 1;
