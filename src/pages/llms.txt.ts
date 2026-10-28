@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { getMergedCveRecords } from '../data/cves';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -8,27 +9,39 @@ export const GET: APIRoute = async () => {
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
   );
 
+  const cveRecords = getMergedCveRecords(articles);
+
   const lines: string[] = [
     '# TechPulse — Systems, AI & Security Advisories',
     '',
-    '> TechPulse (https://www.techpulsenews.tech) is an independent technical publication covering software systems, frontier AI models, autonomous agent architectures, and critical runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, and cloud-native infrastructure.',
+    '> TechPulse (https://www.techpulsenews.tech) is an independent technical publication covering software systems, frontier AI models, autonomous agent architectures, and critical runtime security advisories (CVEs) across Node.js, Bun, PHP, Java SE, UEFI, Veeam, and cloud-native infrastructure.',
     '',
     '## Primary Sections',
     `- [Home & Editorial Stream](${SITE}/): Full chronological feed of dispatches and advisories.`,
-    `- [CVE & Vulnerability Advisory Index](${SITE}/security): Structured matrix of active CVEs, CVSS v3.1 scores, affected branches, and patched releases.`,
+    `- [CVE & Vulnerability Advisory Index](${SITE}/security): Structured matrix of active CVEs, CVSS scores, affected branches, and patched releases.`,
     `- [Artificial Intelligence](${SITE}/category/ai): Frontier models, agentic architectures, inference economics, and automated vulnerability discovery.`,
     `- [Security & Advisories](${SITE}/category/security): Zero-day exploits, CVE disclosures, cryptographic flaws, and runtime patches.`,
     `- [Systems & Runtimes](${SITE}/category/tech-update): Release notes and compiler/runtime engineering across Node.js, Bun, and Astro.`,
-    `- [Industry & Infrastructure](${SITE}/category/tech-news): Enterprise AI deployment, public-sector governance, and safety evaluations.`,
+    `- [Industry & Infrastructure](${SITE}/category/tech-news): Enterprise AI deployment, S-1 filings, public-sector governance, and safety evaluations.`,
     '',
     '## Machine-Readable Feeds',
     `- Sitemap: ${SITE}/sitemap.xml`,
     `- Google News Sitemap: ${SITE}/news-sitemap.xml`,
     `- RSS 2.0 Feed: ${SITE}/rss.xml`,
     '',
-    '## Published Dispatches & Technical Advisories',
+    '## Dedicated CVE Technical Datasheets (/cve/[id])',
     '',
   ];
+
+  for (const cve of cveRecords) {
+    lines.push(
+      `- [${cve.id} — ${cve.component} (${cve.severity}, CVSS ${cve.cvss})](${SITE}/cve/${cve.slugId}): Affected: ${cve.affected} | Patched: ${cve.patched}`
+    );
+  }
+
+  lines.push('');
+  lines.push('## Published Dispatches & Technical Advisories');
+  lines.push('');
 
   for (const article of articles) {
     const url = `${SITE}/articles/${article.slug}`;
