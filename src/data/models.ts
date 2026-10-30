@@ -169,6 +169,39 @@ export const GPU_PRESETS: GpuPreset[] = [
 
 export const AI_MODELS: AiModelRecord[] = [
   {
+    id: 'mistral-large-4',
+    name: 'Mistral Large 4 "Le Chonk" (1T MoE)',
+    shortName: 'Mistral Large 4 (1T)',
+    provider: 'Mistral AI',
+    tier: 'open-weight',
+    license: 'Mistral Ecosystem Open-Weight License (modified MIT; MaaS needs commercial license)',
+    releaseDate: '2026-10-29',
+    architecture: 'Granular MoE (~1,050B Total / 52B Active, 128 routed + 1 shared expert) + MLA + DSA sparse attention + 1.6B Pixtral-style vision encoder',
+    totalParamsB: 1050,
+    activeParamsB: 52,
+    paramsLabel: '~1,050B Total / 52B Active',
+    contextTokens: 1048576,
+    contextLabel: '1,048,576 tokens (1M)',
+    maxOutputTokens: 131072, // Mistral has not published a separate output cap; calculator default
+    inputPricePer1M: 0.70,
+    cachedInputPricePer1M: 0.07,
+    outputPricePer1M: 2.10,
+    apiProviderNote: 'Mistral API (mistral-large-4) / OpenRouter / Microsoft Foundry / NVIDIA NIM, or Self-Hosted vLLM / SGLang',
+    isOpenWeight: true,
+    kvCacheGbPer1kTokensFp16: 0.07, // MLA compressed latent KV cache (estimate)
+    localCliCommand: 'vllm serve mistralai/Mistral-Large-4-1T-A52B --tensor-parallel-size 8 --tool-call-parser mistral --reasoning-parser mistral --enable-auto-tool-choice',
+    recommendedGpu: '8× H200 / B200 Node (FP8) or 8× B200 (NVFP4 checkpoint)',
+    articleSlug: 'mistral-large-4-open-weight-le-chonk-1t-moe-coding-cyber',
+    summary:
+      "Mistral's largest model and first trillion-parameter open-weight release: a European-trained multimodal MoE with 52B active parameters, a 1M-token context, and three reasoning efforts, claiming the open-weight lead on FrontierCode 2.0 and Terminal-Bench 4.0.",
+    strengths: [
+      'Vendor-reported open-weight lead on FrontierCode 2.0 (19.7%) and Terminal-Bench 4.0 (41%) with high token efficiency',
+      '51% on the Artificial Analysis Cyber Index with a 96.6% refusal rate on malicious cyber prompts',
+      'Low / medium / high reasoning efforts per request, native strict JSON schema output, and an embedded DSpark speculative decoding head',
+    ],
+    workloads: ['Agentic Coding at Scale', 'Defensive Security & Vulnerability Triage', 'Sovereign / On-Prem Enterprise Deployments'],
+  },
+  {
     id: 'google-gemini-4-carbon',
     name: 'Google Gemini 4 Carbon',
     shortName: 'Gemini 4 Carbon',
