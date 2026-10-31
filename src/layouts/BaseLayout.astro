@@ -278,6 +278,7 @@ const searchIndex = allArticles
         } catch (e) {}
       })();
     </script>
+    <slot name="head" />
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -296,11 +297,19 @@ const searchIndex = allArticles
           </button>
 
           <a
+            href="/tips"
+            class:list={['util-link', { active: activeNav === 'tips' }]}
+            aria-current={activeNav === 'tips' ? 'page' : undefined}
+          >
+            Tips
+          </a>
+
+          <a
             href="/models"
             class:list={['util-link', { active: activeNav === 'models' }]}
             aria-current={activeNav === 'models' ? 'page' : undefined}
           >
-            Models &amp; VRAM
+            Models<span class="util-link-extra">&amp; VRAM</span>
           </a>
 
           <a
@@ -360,6 +369,7 @@ const searchIndex = allArticles
           <a href="/category/security" class="util-link">Security</a>
           <a href="/category/tech-update" class="util-link">Systems</a>
           <a href="/category/tech-news" class="util-link">Industry</a>
+          <a href="/tips" class="util-link">Tips</a>
           <a href="/models" class="util-link">Models &amp; VRAM</a>
           <a href="/security" class="util-link">CVE Index</a>
           <a href="/rss.xml" class="util-link">RSS</a>

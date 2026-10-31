@@ -2354,3 +2354,495 @@ time,
     aspect-ratio: 16 / 9;
   }
 }
+
+/* =========================================================
+   TIPS (/tips, /tips/[slug], homepage Daily Tip)
+   Typography-first: sans headlines + mono numbering to set
+   tips apart from the serif news voice. Hairlines only.
+   ========================================================= */
+.tips-eyebrow,
+.tip-meta-line,
+.daily-tip-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0 0 12px;
+}
+
+.tips-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+.tips-index-layout {
+  max-width: 760px;
+}
+
+.tips-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--hairline-strong);
+}
+
+.tips-filter-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.tips-filter-btn:hover {
+  color: var(--ink);
+  border-color: var(--hairline-strong);
+}
+
+.tips-filter-btn[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.tips-filter-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.tips-filter-btn:focus-visible,
+.tip-tag:focus-visible,
+.tip-credit-handle:focus-visible,
+.tip-pager-link:focus-visible,
+.tip-all-link:focus-visible,
+.tips-index-title a:focus-visible,
+.daily-tip-title a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.tips-filter-status {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin: 12px 0 0;
+  min-height: 1px;
+}
+
+.tips-filter-status:empty {
+  margin: 0;
+}
+
+.tips-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tips-index-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 0 20px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.tips-index-row[hidden] {
+  display: none;
+}
+
+.tips-index-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tips-index-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+
+.tips-index-title a {
+  color: var(--ink);
+}
+
+.tips-index-title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.tips-index-desc {
+  font-size: 0.97rem;
+  line-height: 1.6;
+  color: var(--ink-secondary);
+  margin: 0 0 10px;
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.tips-index-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.tips-meta-sep {
+  color: var(--hairline-strong);
+}
+
+.tips-empty {
+  padding: 28px 0;
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.tips-feed-note {
+  margin: 28px 0 0;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+
+.tips-feed-note a,
+.tip-all-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--hairline-strong);
+}
+
+/* ---- Single tip ---- */
+.tip-header {
+  margin-bottom: 28px;
+}
+
+.tip-number {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.tip-headline {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(1.9rem, 4.4vw, 2.6rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  margin: 0 0 16px;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.tip-deck {
+  font-size: 1.12rem;
+  line-height: 1.55;
+  color: var(--ink-secondary);
+  margin: 0 0 18px;
+  text-wrap: pretty;
+}
+
+.tip-tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.tip-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+}
+
+.tip-tag:hover {
+  color: var(--ink);
+}
+
+.tip-credit {
+  border-top: 1px solid var(--hairline-strong);
+  border-bottom: 1px solid var(--hairline);
+  padding: 18px 0 16px;
+  margin: 0 0 8px;
+}
+
+.tip-credit-heading {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  margin: 0 0 10px;
+}
+
+.tip-credit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.tip-credit-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.tip-credit-handle {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--hairline-strong);
+}
+
+.tip-credit-handle:hover {
+  text-decoration-color: var(--ink);
+}
+
+.tip-credit-platform {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+.tip-credit-note {
+  flex-basis: 100%;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+}
+
+.tip-credit-disclaimer {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+.tip-body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.04rem;
+  line-height: 1.72;
+  color: var(--ink-secondary);
+  counter-reset: tip-step;
+}
+
+.tip-body p {
+  margin: 0 0 1.1em;
+  text-wrap: pretty;
+}
+
+.tip-body h2 {
+  counter-increment: tip-step;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 2.2em 0 0.6em;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.tip-body h2::before {
+  content: counter(tip-step, decimal-leading-zero);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.tip-body h2:last-of-type,
+.tip-body h2:last-of-type::before {
+  color: var(--high-text);
+}
+
+.tip-body pre {
+  font-size: 0.82rem;
+}
+
+.tip-footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline-strong);
+}
+
+.tip-byline {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  margin: 0 0 20px;
+}
+
+.tip-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.tip-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--ink);
+}
+
+.tip-pager-next {
+  text-align: right;
+}
+
+.tip-pager-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.tip-pager-title {
+  font-weight: 500;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.tip-pager-link:hover .tip-pager-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tip-all-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---- Homepage Daily Tip ---- */
+.daily-tip {
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.daily-tip-meta {
+  margin-bottom: 6px;
+}
+
+.daily-tip-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+
+.daily-tip-title a {
+  color: var(--ink);
+}
+
+.daily-tip-title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.daily-tip-desc {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-secondary);
+  margin: 0 0 8px;
+}
+
+.daily-tip-credit {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .tips-index-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 22px 0;
+  }
+
+  .tips-index-num {
+    font-size: 0.875rem;
+  }
+
+  .tip-pager {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tip-pager-next {
+    text-align: left;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-utilities {
+    gap: 10px;
+  }
+
+  .header-inner {
+    padding: 0 16px;
+  }
+
+  .brand-wordmark {
+    font-size: 1.375rem;
+  }
+
+  .util-link,
+  .util-btn {
+    white-space: nowrap;
+  }
+
+  /* Icon-only search and theme on small screens; both buttons keep aria-labels. */
+  #open-search-btn span,
+  #cycle-theme-btn span,
+  .util-link-extra {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-utilities {
+    gap: 4px;
+  }
+
+  .brand-wordmark {
+    font-size: 1.25rem;
+  }
+}

@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getMergedCveRecords } from '../data/cves';
 import { AI_MODELS } from '../data/models';
+import { getSortedTips } from '../data/tips';
 
 const SITE = 'https://www.techpulsenews.tech';
 
@@ -14,12 +15,18 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
+function latestDateFallback(): string {
+  return new Date().toISOString();
+}
+
 export const GET: APIRoute = async () => {
   const articles = (await getCollection('articles')).sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
   );
 
   const cveRecords = getMergedCveRecords(articles);
+  const tips = await getSortedTips();
+  const latestTipDate = tips.length > 0 ? tips[0].data.pubDate.toISOString() : latestDateFallback();
 
   const latestDate =
     articles.length > 0
@@ -29,6 +36,7 @@ export const GET: APIRoute = async () => {
   const staticPages = [
     { path: '/', priority: '1.0', changefreq: 'hourly', lastmod: latestDate },
     { path: '/models', priority: '0.95', changefreq: 'daily', lastmod: latestDate },
+    { path: '/tips', priority: '0.9', changefreq: 'daily', lastmod: latestTipDate },
     { path: '/security', priority: '0.9', changefreq: 'daily', lastmod: latestDate },
     { path: '/category/ai', priority: '0.8', changefreq: 'daily', lastmod: latestDate },
     { path: '/category/security', priority: '0.8', changefreq: 'daily', lastmod: latestDate },
@@ -79,6 +87,15 @@ export const GET: APIRoute = async () => {
   </url>`;
   }).join('\n');
 
+  const tipEntries = tips
+    .map((tip) => `  <url>
+    <loc>${SITE}/tips/${tip.slug}</loc>
+    <lastmod>${tip.data.pubDate.toISOString()}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`)
+    .join('\n');
+
   const cveEntries = cveRecords
     .map((cve) => {
       const loc = `${SITE}/cve/${cve.slugId}`;
@@ -100,6 +117,7 @@ export const GET: APIRoute = async () => {
 ${staticEntries}
 ${articleEntries}
 ${modelEntries}
+${tipEntries}
 ${cveEntries}
 </urlset>`;
 

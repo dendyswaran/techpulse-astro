@@ -4,12 +4,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import { CURATED_CVE_RECORDS } from '../data/cves';
 import { AI_MODELS } from '../data/models';
+import { getSortedTips, DIFFICULTY_LABEL, sourceHandle } from '../data/tips';
 
 const SITE = 'https://www.techpulsenews.tech';
 
 const allArticles = (await getCollection('articles')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+
+const latestTip = (await getSortedTips())[0];
+const latestTipCredit = latestTip
+  ? latestTip.data.sources.find((s) => s.platform !== 'web') || latestTip.data.sources[0]
+  : null;
 
 const advisoryLedger = CURATED_CVE_RECORDS.slice(0, 7);
 const modelLedger = AI_MODELS.slice(0, 6);
@@ -95,7 +101,10 @@ const homeCollectionSchema = {
           <button type="button" role="tab" aria-selected="false" class="cat-tab" data-filter-cat="tech-news">
             Industry
           </button>
-          <a href="/models" class="cat-tab cat-tab-right">
+          <a href="/tips" class="cat-tab cat-tab-right">
+            Tips
+          </a>
+          <a href="/models" class="cat-tab">
             Models &amp; VRAM
           </a>
           <a href="/security" class="cat-tab">
@@ -120,6 +129,24 @@ const homeCollectionSchema = {
       <!-- Right Sidebar (Separated by a single 1px vertical hairline, zero boxed cards) -->
       <aside class="right-sidebar" aria-label="Editorial Rail">
         <div class="sidebar-sticky">
+          {latestTip && (
+            <section class="sidebar-section daily-tip" aria-labelledby="daily-tip-heading">
+              <h2 class="sidebar-heading" id="daily-tip-heading">
+                <span>Daily Tip</span>
+                <a href="/tips" class="sidebar-heading-link">All tips →</a>
+              </h2>
+              <p class="daily-tip-meta">
+                Tip {latestTip.label} · {DIFFICULTY_LABEL[latestTip.data.difficulty]}
+              </p>
+              <h3 class="daily-tip-title">
+                <a href={`/tips/${latestTip.slug}`}>{latestTip.data.title}</a>
+              </h3>
+              <p class="daily-tip-desc">{latestTip.data.description}</p>
+              {latestTipCredit && (
+                <p class="daily-tip-credit">Inspired by {sourceHandle(latestTipCredit)}</p>
+              )}
+            </section>
+          )}
           <!-- Section 1: Active Advisories (Minimalist Ledger linking to /cve/[id]) -->
           <section class="sidebar-section">
             <h2 class="sidebar-heading">
