@@ -1,0 +1,163 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  getSortedTips,
+  DIFFICULTY_LABEL,
+  DIFFICULTY_PROFICIENCY,
+  PLATFORM_LABEL,
+  sourceHandle,
+  formatTipDate,
+} from '../../data/tips';
+
+export async function getStaticPaths() {
+  const tips = await getSortedTips();
+  return tips.map((tip, idx) => ({
+    params: { slug: tip.slug },
+    props: {
+      tip,
+      newer: idx > 0 ? tips[idx - 1] : null,
+      older: idx < tips.length - 1 ? tips[idx + 1] : null,
+    },
+  }));
+}
+
+const { tip, newer, older } = Astro.props;
+const { Content } = await tip.render();
+
+const SITE = 'https://www.techpulsenews.tech';
+const canonicalPath = `/tips/${tip.slug}`;
+const canonicalUrl = `${SITE}${canonicalPath}`;
+const { title, description, pubDate, tags, difficulty, author, sources, coverImage } = tip.data;
+const socialSources = sources.filter((s) => s.platform !== 'web');
+const webSources = sources.filter((s) => s.platform === 'web');
+
+const pageTitle = `${title} | TechPulse Tips`;
+
+const techArticleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  '@id': `${canonicalUrl}#techarticle`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+  headline: title,
+  description,
+  proficiencyLevel: DIFFICULTY_PROFICIENCY[difficulty],
+  datePublished: pubDate.toISOString(),
+  dateModified: pubDate.toISOString(),
+  keywords: tags.join(', '),
+  articleSection: 'Tips',
+  author: {
+    '@type': 'Person',
+    name: author.name,
+    jobTitle: 'Editor-in-Chief, TechPulse',
+    url: `${SITE}/`,
+  },
+  publisher: { '@id': `${SITE}/#organization` },
+  isPartOf: { '@id': `${SITE}/tips#collection` },
+  citation: sources.map((s) => s.url),
+  ...(coverImage ? { image: `${SITE}${coverImage}` } : {}),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+    { '@type': 'ListItem', position: 2, name: 'Tips', item: `${SITE}/tips` },
+    { '@type': 'ListItem', position: 3, name: title, item: canonicalUrl },
+  ],
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  activeNav="tips"
+  canonicalPath={canonicalPath}
+  ogType="article"
+  ogImage={coverImage}
+  ogImageAlt={coverImage ? title : undefined}
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={pubDate.toISOString()}
+  authorName={author.name}
+  section="Tips"
+  tags={tags}
+  jsonLd={[techArticleSchema, breadcrumbSchema]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title="TechPulse Daily Tips" href="/tips/rss.xml" />
+  <article class="container-reading tip-sheet">
+    <header class="tip-header">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li><a href="/">Home</a><span class="breadcrumb-sep" aria-hidden="true">/</span></li>
+          <li><a href="/tips">Tips</a><span class="breadcrumb-sep" aria-hidden="true">/</span></li>
+          <li><span class="breadcrumb-current" aria-current="page">Tip {tip.label}</span></li>
+        </ol>
+      </nav>
+
+      <p class="tip-meta-line">
+        <span class="tip-number">Tip {tip.label}</span>
+        <span class="tips-meta-sep" aria-hidden="true">·</span>
+        <span>{DIFFICULTY_LABEL[difficulty]}</span>
+        <span class="tips-meta-sep" aria-hidden="true">·</span>
+        <time datetime={pubDate.toISOString()}>{formatTipDate(pubDate)}</time>
+      </p>
+
+      <h1 class="tip-headline">{title}</h1>
+      <p class="tip-deck">{description}</p>
+
+      <ul class="tip-tags" aria-label="Tags">
+        {tags.map((tag) => (
+          <li><a href={`/tips?tag=${encodeURIComponent(tag)}`} class="tip-tag">#{tag}</a></li>
+        ))}
+      </ul>
+    </header>
+
+    <aside class="tip-credit" aria-labelledby="tip-credit-heading">
+      <h2 class="tip-credit-heading" id="tip-credit-heading">Inspired by</h2>
+      <ul class="tip-credit-list">
+        {socialSources.map((s) => (
+          <li>
+            <a href={s.url} class="tip-credit-handle" rel="noopener" target="_blank">
+              {sourceHandle(s)}<span class="sr-only"> (opens original post on {PLATFORM_LABEL[s.platform]})</span>
+            </a>
+            <span class="tip-credit-platform">on {PLATFORM_LABEL[s.platform]}</span>
+            {s.note && <span class="tip-credit-note">{s.note}</span>}
+          </li>
+        ))}
+        {webSources.map((s) => (
+          <li>
+            <a href={s.url} class="tip-credit-handle" rel="noopener" target="_blank">{s.handle}</a>
+            <span class="tip-credit-platform">reference</span>
+            {s.note && <span class="tip-credit-note">{s.note}</span>}
+          </li>
+        ))}
+      </ul>
+      <p class="tip-credit-disclaimer">
+        Summarized in our own words. Read the original post for the author's full context.
+      </p>
+    </aside>
+
+    <div class="prose tip-body">
+      <Content />
+    </div>
+
+    <footer class="tip-footer">
+      <p class="tip-byline">Curated by <strong>{author.name}</strong> for TechPulse.</p>
+      <nav class="tip-pager" aria-label="More tips">
+        {older ? (
+          <a href={`/tips/${older.slug}`} class="tip-pager-link">
+            <span class="tip-pager-label">Previous · Tip {older.label}</span>
+            <span class="tip-pager-title">{older.data.title}</span>
+          </a>
+        ) : <span />}
+        {newer ? (
+          <a href={`/tips/${newer.slug}`} class="tip-pager-link tip-pager-next">
+            <span class="tip-pager-label">Next · Tip {newer.label}</span>
+            <span class="tip-pager-title">{newer.data.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+      <a href="/tips" class="tip-all-link">All tips →</a>
+    </footer>
+  </article>
+</BaseLayout>
