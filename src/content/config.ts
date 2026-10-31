@@ -34,6 +34,32 @@ const articlesCollection = defineCollection({
   }),
 });
 
+const tipsCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    tags: z.array(z.string()).min(1),
+    difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
+    author: z.object({
+      name: z.string().default('Mazzden'),
+    }).default({ name: 'Mazzden' }),
+    sources: z
+      .array(
+        z.object({
+          handle: z.string(),
+          platform: z.enum(['x', 'threads', 'web']),
+          url: z.string().url(),
+          note: z.string().optional(),
+        })
+      )
+      .min(1),
+    coverImage: z.string().optional(),
+  }),
+});
+
 export const collections = {
   articles: articlesCollection,
+  tips: tipsCollection,
 };
