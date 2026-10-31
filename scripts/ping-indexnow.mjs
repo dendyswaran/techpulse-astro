@@ -14,6 +14,8 @@ function collectCanonicalUrls() {
   const urls = new Set([
     `${SITE}/`,
     `${SITE}/models`,
+    `${SITE}/tips`,
+    `${SITE}/tips/rss.xml`,
     `${SITE}/security`,
     `${SITE}/category/ai`,
     `${SITE}/category/security`,
@@ -67,6 +69,14 @@ function collectCanonicalUrls() {
     let m;
     while ((m = idRegex.exec(modelsBlock)) !== null) {
       urls.add(`${SITE}/models/${m[1]}`);
+    }
+  }
+
+  // 4. Collect all tip slugs from src/content/tips
+  const tipsDir = path.join(rootDir, 'src', 'content', 'tips');
+  if (fs.existsSync(tipsDir)) {
+    for (const file of fs.readdirSync(tipsDir).filter((f) => f.endsWith('.md'))) {
+      urls.add(`${SITE}/tips/${file.replace(/\.md$/, '')}`);
     }
   }
 
