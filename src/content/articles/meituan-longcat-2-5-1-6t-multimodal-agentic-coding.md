@@ -9,6 +9,9 @@ author:
   name: "Mazzden"
   role: "Editor-in-Chief, TechPulse"
 featured: false
+coverImage: "/images/covers/meituan-longcat-2-5-1-6t-multimodal-agentic-coding.webp"
+coverAlt: "Watercolor illustration of a long winding path through sage and ochre hills, with a small black cat silhouette sitting at its start"
+coverCaption: "Illustration by TechPulse Editorial · A long road ahead for agents built to work across long horizons."
 tldr:
   - "Meituan released LongCat-2.5 on November 2: a native multimodal MoE with 1.6 trillion total parameters and about 48B active per token, built for long-horizon agent work and trained entirely on domestic Chinese compute."
   - "On the LongCat API it has a 1M-token context, up to 128K output tokens, and limited-time pricing of $0.30 per 1M uncached input, $0.006 cached and $1.20 output. It exposes both OpenAI- and Anthropic-compatible endpoints."
