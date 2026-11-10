@@ -35,6 +35,35 @@ export function toCveSlug(id: string): string {
 
 export const CURATED_CVE_RECORDS: CveRecord[] = [
   {
+    id: 'CVE-2026-123158',
+    slugId: 'cve-2026-123158',
+    vendor: 'OpenSSH (OpenBSD) / Alpine Linux',
+    product: 'OpenSSH sshd (portable)',
+    component: 'Password authentication on musl libc without PAM (crypt() error value vs. "*" shadow field)',
+    shortLabel: "OpenSSH 'SSHole' musl Password-Auth Bypass",
+    severity: 'HIGH',
+    cvss: '8.1',
+    cwe: 'CWE-287 (Improper Authentication)',
+    vector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H; one SSH login with a 257–1,024-byte password to an account whose shadow field is "*"',
+    priority: 'P0 for Alpine/musl hosts with SSH exposed — exploitation observed; patch and restart sshd',
+    publishedDate: '2026-11-05',
+    affected: 'OpenSSH sshd before 10.6p2 on Linux built with musl libc and PAM disabled (Alpine 3.16–3.24 and edge by default; OpenWrt, Buildroot, Yocto builds)',
+    patched: 'OpenSSH 10.6p2; Alpine openssh 10.6_p2-r0 (edge), 10.3_p1-r2 (3.24), 10.2_p1-r1 (3.23), 10.0_p1-r11 (3.22), 9.9_p2-r1 (3.21), 9.7_p1-r6 (3.20), 9.6_p1-r3 (3.19), 9.3_p2-r4 (3.18), 9.1_p1-r7 (3.17), 9.0_p1-r6 (3.16)',
+    articleSlug: 'openssh-sshole-cve-2026-123158-musl-alpine-exploited',
+    summary:
+      'musl crypt() returns "*" for passwords longer than 256 bytes, which matches the "*" shadow marker for accounts with no password. sshd without PAM compares the two and accepts the login, so any 257–1,024-byte password opens key-only accounts (root on Alpine, the alpine cloud-image user) when another account has a $5$/$6$ hash. Check Point reported exploitation, including root on an Alpine honeypot.',
+    remediationSteps: [
+      'Upgrade to OpenSSH 10.6p2 or the fixed Alpine openssh package for your branch, then restart sshd.',
+      'If you cannot patch, set PasswordAuthentication no (or UsePAM yes where sshd is built with PAM) and restart sshd.',
+      'Rebuild Alpine-based container images and appliances that run sshd; audit auth logs for password logins to key-only or root accounts.',
+    ],
+    references: [
+      { label: 'OpenSSH 10.6p2 release notes', url: 'https://www.openssh.org/releasenotes.html' },
+      { label: 'OX Security analysis', url: 'https://www.ox.security/blog/openssh-authentication-bypass-cve-2026-123158/' },
+      { label: 'Check Point Research — exploitation observed (Nov 9)', url: 'https://research.checkpoint.com/2026/9th-november-threat-intelligence-report/' },
+    ],
+  },
+  {
     id: 'CVE-2026-124440',
     slugId: 'cve-2026-124440',
     vendor: 'Kyverno (CNCF)',
