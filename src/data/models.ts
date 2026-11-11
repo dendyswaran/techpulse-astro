@@ -417,10 +417,10 @@ export const AI_MODELS: AiModelRecord[] = [
     inputPricePer1M: 2.00,
     cachedInputPricePer1M: 0.10,
     outputPricePer1M: 10.00,
-    apiProviderNote: 'Introductory price ($4 / $20 per 1M after the intro period). Phased rollout: cyber defenders first, then Fairwind Program partners; no public developer model ID yet.',
+    apiProviderNote: 'Generally available since 2026-11-10 on the paid Gemini API tier (AI Studio, Gemini for business) as gemini-4-carbon, and in GitHub Copilot (Pro+, Max, Business, Enterprise). Introductory price ($4 / $20 per 1M after the intro period).',
     isOpenWeight: false,
     kvCacheGbPer1kTokensFp16: 0,
-    localCliCommand: '# Not yet on the public Gemini API. Use gemini-4-argon until Carbon reaches general availability.',
+    localCliCommand: '# Cloud API only: model ID gemini-4-carbon (Gemini API paid tier / Google AI Studio)',
     recommendedGpu: 'Cloud API Only',
     articleSlug: 'gemini-4-carbon-frontier-model-cyber-defenders',
     summary:
