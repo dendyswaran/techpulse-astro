@@ -35,6 +35,74 @@ export function toCveSlug(id: string): string {
 
 export const CURATED_CVE_RECORDS: CveRecord[] = [
   {
+    id: 'CVE-2026-123864',
+    slugId: 'cve-2026-123864',
+    vendor: 'OpenJS Foundation',
+    product: 'Node.js Runtime',
+    component: 'HTTPS server (TLSWrap / llhttp request parser)',
+    shortLabel: 'Node.js HTTPS heap leak',
+    severity: 'HIGH',
+    cvss: '8.1 (CVSS 3.0)',
+    cwe: 'CWE-416 (Use After Free) / CWE-125 (Out-of-bounds Read)',
+    vector: 'CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:H',
+    priority: 'P1 — Patch HTTPS-terminating Node services this week',
+    publishedDate: '2026-11-11',
+    affected: 'Node.js 22.x < 22.23.5, 24.x < 24.22.3, 26.x < 26.13.1 (cleartext node:http not affected)',
+    patched: 'Node.js v22.23.5, v24.22.3, v26.13.1',
+    articleSlug: 'nodejs-november-2026-security-release-http2-tls-heap-leak-cve-2026-123864',
+    summary:
+      'A zero-length TLS write issued from inside the HTTP parser on_body callback makes TLSWrap::DoWrite() call ClearOut() directly, re-entering llhttp_execute() mid-body. The resulting use-after-free and out-of-bounds heap read lets an unauthenticated client get freed or unrelated heap memory, including other connections\' requests and TLS private keys, copied into a request body. Requires a handler that calls res.flushHeaders() before the body ends and later res.end() with a non-empty chunk, plus a route that echoes or stores request bodies.',
+    remediationSteps: [
+      'Upgrade to Node.js v22.23.5, v24.22.3 or v26.13.1 and rebuild container images that pin a Node patch version.',
+      'Prioritize services that terminate HTTPS directly in Node and echo or persist request bodies.',
+      'If patching is delayed, terminate TLS at a reverse proxy or load balancer in front of Node.',
+    ],
+    references: [
+      {
+        label: 'Node.js — November 11, 2026 Security Releases',
+        url: 'https://nodejs.org/en/blog/vulnerability/november-2026-security-releases',
+      },
+      {
+        label: 'NVD — CVE-2026-123864',
+        url: 'https://nvd.nist.gov/vuln/detail/cve-2026-123864',
+      },
+    ],
+  },
+  {
+    id: 'CVE-2026-123872',
+    slugId: 'cve-2026-123872',
+    vendor: 'OpenJS Foundation',
+    product: 'Node.js Runtime',
+    component: 'node:tls (TLS 1.2 renegotiation, HRR and session resumption SNI handling)',
+    shortLabel: 'Node.js mTLS SNI bypass',
+    severity: 'HIGH',
+    cvss: '8.1 (CVSS 3.0)',
+    cwe: 'CWE-287 (Improper Authentication)',
+    vector: 'CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N',
+    priority: 'P1 — Patch servers with per-hostname client-certificate policies',
+    publishedDate: '2026-11-11',
+    affected: 'Node.js 22.x < 22.23.5, 24.x < 24.22.3, 26.x < 26.13.1',
+    patched: 'Node.js v22.23.5, v24.22.3, v26.13.1',
+    articleSlug: 'nodejs-november-2026-security-release-http2-tls-heap-leak-cve-2026-123864',
+    summary:
+      'On a TLS server that applies different client-certificate policies per hostname, a client that authenticated for a permitted host can renegotiate the TLS 1.2 connection under a different servername and carry its existing authentication to a host with a stricter policy. The fix stops renegotiation, HelloRetryRequest and session resumption from changing SNI, and disables resumption for mTLS without a session id context.',
+    remediationSteps: [
+      'Upgrade to Node.js v22.23.5, v24.22.3 or v26.13.1.',
+      'Audit servers that use SNICallback or server.addContext() with different client CAs per host; give every protected SNI context its own certificate (see CVE-2026-123867).',
+      'Where clients allow it, require TLS 1.3 so TLS 1.2 renegotiation is not in play.',
+    ],
+    references: [
+      {
+        label: 'Node.js — November 11, 2026 Security Releases',
+        url: 'https://nodejs.org/en/blog/vulnerability/november-2026-security-releases',
+      },
+      {
+        label: 'Rapid7 — CVE-2026-123872',
+        url: 'https://www.rapid7.com/db/vulnerabilities/cve-2026-123872/',
+      },
+    ],
+  },
+  {
     id: 'CVE-2026-124194',
     slugId: 'cve-2026-124194',
     vendor: 'Microsoft',
