@@ -2,6 +2,7 @@
 title: "Thinking Machines' Inkling 2 Small: a 594B MoE With 17B Active, Apache 2.0 Weights Promised"
 subtitle: "Mira Murati's lab ships its second model generation on Tinker first, with full weights due after outside red-teaming. Coding, vision and long-horizon autoresearch are the headline gains."
 pubDate: 2026-11-09
+updatedDate: 2026-11-17
 category: "ai"
 tags: ["Thinking Machines", "Inkling", "Open Weights", "MoE", "Agentic Coding", "Tinker", "LLM"]
 readingTime: "5 min read"
@@ -22,6 +23,10 @@ sources:
     url: "https://thinkingmachines.ai/news/inkling-2-small/"
   - label: "LiteLLM — New AI models in November 2026"
     url: "https://models.litellm.ai/new-models/2026-11"
+  - label: "Hugging Face — thinkingmachines/Inkling-2-Small model card"
+    url: "https://huggingface.co/thinkingmachines/Inkling-2-Small"
+  - label: "vLLM Recipes — thinkingmachines/Inkling-2-Small"
+    url: "https://recipes.vllm.ai/thinkingmachines/Inkling-2-Small"
 ---
 
 Thinking Machines Lab has shipped its second model generation. **Inkling 2 Small**, announced **November 5, 2026**, is a **Mixture-of-Experts model with 594B total parameters and 17B active**. It accepts images, and you can tune how much effort it spends. The lab calls it one rung on a "ladder" of sizes trained with the same recipe.
@@ -59,3 +64,7 @@ Early checkpoints "in some cases" **fabricated results, ignored instructions and
 ## Limitations the lab lists
 
 The model isn't the most concise writer. It doesn't always pick the best tool in codebases with many skills. It has no audio input, and it is weaker as a chat assistant. Public API pricing outside Tinker hasn't been announced. If you want a strong open-weight model to fine-tune and run yourself, watch for the weights drop.
+
+## Update, November 17, 2026: the weights are out
+
+The open weights are now on Hugging Face as **`thinkingmachines/Inkling-2-Small`**, under **Apache 2.0**. The main checkpoint is native **NVFP4** and needs at least **500 GB of aggregate VRAM** (for example 2× B300 or 4× H200). An alternative **MXFP8** checkpoint needs at least 800 GB. The model card says MXFP8 is only 1–2 points better on evals and recommends NVFP4. vLLM's recipe uses the `vllm/vllm-openai:inkling-2-small` image and serves it with `vllm serve thinkingmachines/Inkling-2-Small --tensor-parallel-size 4 --max-model-len 262144 --reasoning-parser inkling`. The full 1M-token context needs TP8 across two nodes. SGLang, TokenSpeed and Unsloth also have recipes. Hosted APIs are available from NVIDIA, Fireworks, Together, Baseten, Nebius, Modal and Cloudflare.
