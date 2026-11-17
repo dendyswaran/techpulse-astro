@@ -35,6 +35,37 @@ export function toCveSlug(id: string): string {
 
 export const CURATED_CVE_RECORDS: CveRecord[] = [
   {
+    id: 'CVE-2026-99288',
+    slugId: 'cve-2026-99288',
+    vendor: 'Linux',
+    product: 'Linux kernel',
+    component: 'TCP/IPv4+IPv6 established-socket lookup (__inet_lookup_established, SYN cookies)',
+    shortLabel: 'NoisyTCP remote kernel panic',
+    severity: 'HIGH',
+    cvss: '7.5',
+    cwe: 'CWE-476 (NULL Pointer Dereference) via race condition',
+    vector: 'Network, unauthenticated: crafted TCP traffic to any reachable listener (Nginx, Apache, sshd defaults) on hosts with 2+ RX queues or RPS. Red Hat: Important, draft CVSS 7.5',
+    priority: 'P1 for internet-facing hosts, VMs and container nodes (one crash takes down the whole host)',
+    publishedDate: '2026-11-10',
+    affected: 'Linux kernels since 4.4 (commit 079096f103fa, 2015) without the fix; RHEL 8/9/10 kernels listed affected',
+    patched: 'Upstream 4e2b3ef19e0e (7.4-rc2); stable 6.12.117, 6.18.63, 7.3.4; Debian 6.1.192-1 / 6.12.117-1; AlmaLinux 8/9/10 kernels in testing',
+    articleSlug: 'noisytcp-cve-2026-99288-linux-tcp-remote-kernel-panic',
+    summary:
+      'Lockless ehash lookups recheck only the address/port tuple after taking a reference, not whether the socket is still hashed. Because socket memory is SLAB_TYPESAFE_BY_RCU, a stale lookup can grab a recycled SYN-cookie request socket that has a NULL listener, and tcp_v4_rcv() dereferences it and panics the kernel. Pre-auth and remote; crashes VMs in seconds to minutes, bare metal in hours. A second variant can cause a use-after-free but is hard to trigger.',
+    remediationSteps: [
+      'Install a kernel containing 4e2b3ef19e0e (6.12.117 / 6.18.63 / 7.3.4 or your distro backport) and reboot.',
+      'If you cannot reboot: set net.ipv4.tcp_syncookies=0 in every network namespace (loses SYN-flood protection), or reduce ingress NICs to one RX queue with RPS/RFS off.',
+      'Prioritise internet-facing VMs and container hosts, and alert on kernel panics in tcp_v4_rcv.',
+    ],
+    references: [
+      { label: 'oss-security — NoisyTCP advisory', url: 'https://www.openwall.com/lists/oss-security/2026/11/15/2' },
+      { label: 'Linux kernel — fix 4e2b3ef19e0e', url: 'https://git.kernel.org/stable/c/4e2b3ef19e0e04adca38442f07dd6bc93c712bf1' },
+      { label: 'AlmaLinux — patched kernels in testing', url: 'https://almalinux.org/blog/2026-11-16-noisytcp-cve-2026-99288/' },
+      { label: 'Debian security tracker', url: 'https://security-tracker.debian.org/tracker/CVE-2026-99288' },
+      { label: 'Red Hat — CVE-2026-99288', url: 'https://access.redhat.com/security/cve/cve-2026-99288' },
+    ],
+  },
+  {
     id: 'CVE-2026-6460',
     slugId: 'cve-2026-6460',
     vendor: 'PostgreSQL Global Development Group',
