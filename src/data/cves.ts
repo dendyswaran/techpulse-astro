@@ -35,6 +35,40 @@ export function toCveSlug(id: string): string {
 
 export const CURATED_CVE_RECORDS: CveRecord[] = [
   {
+    id: 'CVE-2026-114938',
+    slugId: 'cve-2026-114938',
+    vendor: 'OpenJDK / Oracle',
+    product: 'OpenJDK, Oracle Java SE, and OpenJDK derivatives',
+    component: 'HotSpot compiler / x86-64 AVX-512 VBMI Base64 decoder intrinsic',
+    shortLabel: 'Java4Shell Base64 decoder RCE',
+    severity: 'CRITICAL',
+    cvss: '9.2 (CVSS 4.0, Calif); 8.1 (CVSS 3.1, Oracle/OpenJDK)',
+    cwe: 'CWE-787 (Out-of-bounds Write)',
+    vector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H (Oracle/OpenJDK 8.1). Calif: CVSS 4.0 9.2 Critical. Requires an x86-64 CPU with AVX-512 VBMI and attacker-controlled input to the JDK Base64 decoder.',
+    priority: 'P1 for internet-facing Java services on AVX-512 VBMI hosts; inventory bundled runtimes and container images',
+    publishedDate: '2026-11-17',
+    affected: 'OpenJDK 17.0.6 through versions before 17.0.21.1, and all Java 21/25/27 builds before 21.0.13.1, 25.0.5.1 and 27.0.1.1, on x86-64 CPUs with AVX-512 VBMI; Temurin, Corretto, Zulu, Liberica, SapMachine, Microsoft Build of OpenJDK, Red Hat OpenJDK, Oracle Java SE, Oracle GraalVM for JDK. Java 8, Java 11 and native ARM64 runtimes are not affected.',
+    patched: '17.0.21.1+4, 21.0.13.1+4, 25.0.5.1+4, 27.0.1.1+4, plus matching vendor builds',
+    articleSlug: 'java4shell-cve-2026-114938-openjdk-base64-decoder-rce',
+    summary:
+      'An out-of-bounds heap write in OpenJDK\'s AVX-512 VBMI Base64 decoder intrinsic. A malformed leftover fragment can produce a negative output length and a full 64-byte store past the destination array. Java still throws IllegalArgumentException, but neighboring heap objects may already be corrupted. Calif demonstrated unauthenticated RCE in several default Java applications; Datadog notes there is no universal exploit and that denial of service is the more readily achievable impact.',
+    remediationSteps: [
+      'Upgrade to 17.0.21.1, 21.0.13.1, 25.0.5.1 or 27.0.1.1, or your vendor\'s matching build, then restart every Java process.',
+      'Rebuild and redeploy container images and appliances that bundle a JRE, including base-image updates that the application image only inherits.',
+      'If you cannot patch yet, start the JVM with -XX:-UseBASE64Intrinsics. On x86-64 only, -XX:UseAVX=2 also disables the path; do not put that flag in shared options used by native ARM64 JVMs, which will fail to start.',
+      'Prioritize internet-facing services that decode Base64 from unauthenticated input, and watch for unexplained JVM crashes during garbage collection.',
+    ],
+    references: [
+      { label: 'Calif — Java4Shell', url: 'https://calif.io/java4shell/' },
+      { label: 'Datadog Security Labs — Java4Shell', url: 'https://securitylabs.datadoghq.com/articles/java4shell-remote-code-execution-in-openjdk-cve-2026-114938/' },
+      { label: 'JFrog Security Research — Java4Shell', url: 'https://research.jfrog.com/post/java4shell-vulnerability/' },
+      { label: 'CISA alert — Critical Java Vulnerability Requires Immediate Patching', url: 'https://www.cisa.gov/news-events/alerts/2026/11/17/critical-java-vulnerability-requires-immediate-patching' },
+      { label: 'OpenJDK Vulnerability Advisory: 2026/11/17', url: 'https://openjdk.org/groups/vulnerability/advisories/2026-11-17' },
+      { label: 'Oracle — Critical Security Patch Update Advisory, November 2026', url: 'https://www.oracle.com/security-alerts/cspunov2026.html' },
+      { label: 'BleepingComputer — Java4Shell coverage', url: 'https://www.bleepingcomputer.com/news/security/critical-java4shell-flaw-allows-rce-attacks-on-major-java-applications/' },
+    ],
+  },
+  {
     id: 'CVE-2026-99288',
     slugId: 'cve-2026-99288',
     vendor: 'Linux',
